@@ -1,0 +1,5 @@
+clave,requiere_clave,tipo
+DEMO-102,DEMO-101,previa
+DEMO-201,DEMO-102,previa
+DEMO-202,DEMO-201,previa
+DEMO-202,DEMO-102,simultanea

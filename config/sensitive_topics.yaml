@@ -1,0 +1,40 @@
+# BORRADOR: debe definirse y validarse con los tutores (sección 7.3, RF3).
+# Las frases se comparan sin acentos y sin distinguir mayúsculas, como PREFIJO de palabra
+# (p. ej. "suicid" cubre "suicidio" y "suicidarme"). Preferimos sobre-derivar a omitir un caso.
+
+risk:            # riesgo para la persona: respuesta inmediata con información de ayuda
+  - suicid
+  - quitarme la vida
+  - quiero morir
+  - hacerme dano
+  - autolesion
+  - no quiero seguir
+
+sensitive:       # derivación a tutoría
+  - ansiedad
+  - depresion
+  - acoso
+  - violencia
+  - discriminacion
+  - baja temporal
+  - baja definitiva
+  - darme de baja
+  - abandonar la carrera
+  - problemas familiares
+
+requested:       # el estudiante pide hablar con una persona
+  - hablar con mi tutor
+  - hablar con una persona
+  - quiero un tutor
+  - necesito a mi tutor
+
+administrative:  # trámites que el chatbot no puede ejecutar (alcance excluido)
+  - inscribeme
+  - tramita
+  - hazme el tramite
+  - modifica mi
+  - cambia mi calificacion
+
+contact:
+  tutoria: "REEMPLAZAR: correo o ubicación de la coordinación de tutorías"
+  ayuda_inmediata: "REEMPLAZAR: línea o servicio institucional de apoyo (validar con la coordinación)"

@@ -1,0 +1,29 @@
+[project]
+name = "chatbot-tutorias-listi"
+version = "0.1.0"
+description = "Chatbot RAG de apoyo a las tutorías académicas de LISTI (UV)"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi==0.162.2",
+    "uvicorn==0.54.0",
+    "httpx==0.28.1",
+    "pyyaml==6.0.3",
+    "pydantic==2.14.3",
+]
+
+[project.optional-dependencies]
+# Componentes pesados: solo se necesitan para ingesta y recuperación reales.
+# Fija aquí las versiones exactas con `pip freeze` cuando elijas el modelo (riesgo R7).
+rag = [
+    "sentence-transformers",
+    "chromadb",
+    "pypdf",
+]
+dev = ["pytest==9.2.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

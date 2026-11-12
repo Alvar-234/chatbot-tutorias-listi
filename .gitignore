@@ -1,0 +1,17 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+# Documentos institucionales y datos generados: no versionar
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/chroma/*
+!data/chroma/.gitkeep
+data/structured/*.db
+logs/*
+!logs/.gitkeep
+eval/results/*
+!eval/results/.gitkeep

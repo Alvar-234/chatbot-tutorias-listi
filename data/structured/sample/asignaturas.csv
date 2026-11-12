@@ -1,0 +1,5 @@
+clave,nombre,creditos,periodo,area,plan_vigente
+DEMO-101,Programación Básica (EJEMPLO),8,1,Iniciación,Plan DEMO
+DEMO-102,Estructuras de Datos (EJEMPLO),8,2,Disciplinar,Plan DEMO
+DEMO-201,Bases de Datos (EJEMPLO),6,3,Disciplinar,Plan DEMO
+DEMO-202,Ingeniería de Software (EJEMPLO),6,4,Disciplinar,Plan DEMO

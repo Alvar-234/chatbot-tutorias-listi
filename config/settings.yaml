@@ -1,0 +1,55 @@
+# Configuración central. Cambiar proveedor, modelo o umbrales NO requiere tocar código (RNF6).
+# Los valores marcados con REEMPLAZAR deben definirse tras verificar el catálogo vigente (sección 3.2).
+
+llm:
+  temperature: 0.0
+  max_tokens: 600
+  timeout_s: 30
+  # Cadena de contingencia (sección 3.4): se prueba en orden; si uno falla, pasa al siguiente.
+  chain:
+    - provider: groq          # groq | huggingface | local
+      model: "openai/gpt-oss-20b"    # ver https://console.groq.com/docs/models (nivel gratuito)
+    - provider: local
+      model: "REEMPLAZAR"     # p. ej. un modelo servido por Ollama
+      base_url: "http://localhost:11434/v1"
+
+embeddings:
+  model: "BAAI/bge-m3"        # candidatos: BGE-M3, multilingual-e5, EmbeddingGemma (ADR-004)
+  query_prefix: ""            # multilingual-e5 requiere "query: " y "passage: "
+  passage_prefix: ""
+
+chunking:
+  size_tokens: 450            # 300-600 (sección 6.2); se compara experimentalmente
+  overlap_pct: 12
+
+retrieval:
+  k: 5
+  k_candidates: 20
+  rrf_k: 60
+
+sufficiency:
+  relevance_threshold: 0.35   # PROVISIONAL: calibrar con el subconjunto dev (sección 7.2, paso 5)
+  ignore_entities: ["LISTI", "UV"]
+
+pipeline:
+  max_query_chars: 500
+  history_turns: 4
+  max_insufficient_before_handoff: 2
+
+privacy:
+  log_full_text: false        # RNF5: solo metadatos
+  rate_limit:
+    max_calls: 20
+    window_s: 60
+
+routing:
+  out_of_scope_keywords: ["receta de cocina", "horoscopo", "criptomoneda"]
+
+paths:
+  structured_db: "data/structured/plan_estudios.db"
+  manifest: "data/raw/manifest.yaml"
+  chunks: "data/processed/chunks.jsonl"
+  index_info: "data/processed/index_info.json"
+  chroma_dir: "data/chroma"
+  traces: "logs/traces.jsonl"
+  sensitive_topics: "config/sensitive_topics.yaml"
