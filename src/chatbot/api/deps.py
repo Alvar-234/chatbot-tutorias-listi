@@ -33,10 +33,17 @@ def build_pipeline(settings: Settings) -> ChatPipeline:
     embedder = SentenceTransformerEmbedder(emb["model"], emb.get("query_prefix", ""),
                                            emb.get("passage_prefix", ""))
     retr = settings["retrieval"]
+    rr = retr.get("reranker") or {}
+    reranker = None
+    if rr.get("model"):
+        from ..adapters.reranker.cross_encoder_reranker import CrossEncoderReranker
+        reranker = CrossEncoderReranker(rr["model"], rr.get("max_length", 512),
+                                        quantize_int8=rr.get("quantize_int8", False))
     retriever = HybridRetriever(
         embedder, ChromaVectorStore(str(settings.path("chroma_dir"))),
         BM25Index.from_jsonl(settings.path("chunks")),
-        k=retr["k"], k_candidates=retr["k_candidates"], rrf_k=retr["rrf_k"])
+        k=retr["k"], k_candidates=retr["k_candidates"], rrf_k=retr["rrf_k"],
+        reranker=reranker, rerank_candidates=rr.get("candidates", retr["k_candidates"]))
 
     llm_cfg = settings["llm"]
     pl = settings["pipeline"]
@@ -55,5 +62,6 @@ def build_pipeline(settings: Settings) -> ChatPipeline:
             max_insufficient_before_handoff=pl["max_insufficient_before_handoff"],
             temperature=llm_cfg["temperature"], max_tokens=llm_cfg["max_tokens"]),
         versions={"embedding_model": info.get("embedding_model", ""),
+                  "reranker_model": rr.get("model", ""),
                   "corpus_hash": info.get("corpus_hash", ""),
                   "chunking": info.get("chunking", {})})

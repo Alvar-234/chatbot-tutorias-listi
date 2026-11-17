@@ -1,0 +1,64 @@
+# Manifiesto PROVISIONAL para pruebas: apunta a la carpeta Documentos/ (rutas relativas a data/raw/).
+# Pendiente: confirmar autorización de cada documento, versión y fecha de vigencia (valid_from).
+# valid_from se dejó vacío a propósito: no se inventan fechas que el documento no confirma.
+documents:
+  - file: ../../Documentos/05_E_de-los-Alumnos_19-SEP-25_1123h_Version-Compendio-2025.pdf
+    doc_id: estatuto_alumnos
+    title: "Estatuto de los Alumnos 2008 (compendio 2025)"
+    version: "compendio 2025"
+    vigente: true
+
+  - file: ../../Documentos/2023_Aviso-de-privacidad-Integral-TA_ET_FEI.pdf
+    doc_id: aviso_privacidad_tutoria
+    title: "Aviso de privacidad integral de Tutoría Académica y Enseñanza Tutorial (FEI)"
+    version: "2023"
+    vigente: true
+
+  - file: ../../Documentos/8.1.2.a-Reglamentos_Laboratorios.pdf
+    doc_id: reglamentos_laboratorios
+    title: "Reglamentos de uso de los laboratorios (FEI)"
+    vigente: true
+
+  - file: ../../Documentos/DifusionCCReglamentoFEI.pdf
+    doc_id: reglamento_centro_computo
+    title: "Reglamento interno FEI: Centro de Cómputo"
+    vigente: true
+
+  - file: ../../Documentos/HORARIOS_LISTI_13-AGOSTO.pdf
+    doc_id: horarios_listi
+    title: "Horarios LISTI agosto 2026 - enero 2027"
+    version: "agosto 2026 - enero 2027"
+    vigente: true
+
+  - file: ../../Documentos/Lineaminentos-acreditacion_Lengua-201125.pdf
+    doc_id: lineamientos_lengua
+    title: "Lineamientos de operación de la EE Acreditación de la lengua"
+    vigente: true
+
+  - file: ../../Documentos/Manual_Profesor-Tutor.pdf
+    doc_id: pafi_guia_tutor
+    title: "PAFI: guía para el registro del profesor tutor"
+    vigente: true
+
+  - file: ../../Documentos/zManualIncripcionPAFI12Julio19.pdf
+    doc_id: pafi_guia_estudiante
+    title: "PAFI: guía para la inscripción del estudiante"
+    version: "2019-07-12"
+    vigente: true
+
+  # PDF escaneado sin capa de texto: la ingesta lo omite hasta aplicarle OCR.
+  - file: ../../Documentos/Reglamento-de-Movilidad-2015.pdf
+    doc_id: reglamento_movilidad
+    title: "Reglamento de Movilidad 2015"
+    version: "2015"
+    vigente: true
+
+  - file: ../../Documentos/Extraidos a .MD/mapa_curricular_LISTI.md
+    doc_id: mapa_curricular
+    title: "Mapa curricular estándar sugerido LISTI"
+    vigente: true
+
+  - file: ../../Documentos/Extraidos a .MD/directorio_FEI_UV.md
+    doc_id: directorio_fei
+    title: "Directorio de la Facultad de Estadística e Informática"
+    vigente: true

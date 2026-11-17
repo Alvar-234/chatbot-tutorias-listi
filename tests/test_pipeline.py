@@ -52,6 +52,8 @@ def test_todos_los_proveedores_caidos(build):
 def test_pii_no_llega_al_llm_ni_a_la_traza(build):
     llm = FakeLLM("Hasta 2 veces [1].")
     ans = build(llm).answer("Soy zS20012345, mi correo ana@uv.mx: ¿cuántas veces presento examen?")
+    assert llm.calls, "el LLM debe llamarse; si no, el resto de la prueba no demuestra nada"
+    assert ans.decision == Decision.ANSWERED
     enviado = str(llm.calls)
     assert "zS20012345" not in enviado and "ana@uv.mx" not in enviado
     assert "matricula" in ans.trace.pii_types and "ana@uv.mx" not in str(ans.trace)
@@ -70,3 +72,32 @@ def test_riesgo_responde_sin_llamar_al_llm(build):
     llm = FakeLLM("x")
     ans = build(llm).answer("tengo pensamientos de suicidio")
     assert ans.decision == Decision.HANDOFF and not llm.calls and "tutorias@ejemplo.mx" in ans.text
+
+
+def test_marcadores_de_pii_no_cuentan_como_entidades(build):
+    # Bug 1: [CORREO], [TELEFONO], [CURP]... no deben provocar "entidades_ausentes".
+    llm = FakeLLM("Hasta 2 veces [1].")
+    ans = build(llm).answer("Mi tel es 228 123 4567, mi correo ana@uv.mx y mi clave "
+                            "GOMA800101HVZRRN09: ¿cuántas veces presento examen?")
+    assert set(ans.trace.pii_types) == {"telefono", "correo", "curp"}
+    assert ans.decision == Decision.ANSWERED and llm.calls
+
+
+def test_mencionar_la_vigencia_no_invalida_la_respuesta(build):
+    # Bug 2: el prompt pide citar la vigencia, que viene en los atributos de <fuente>.
+    ans = build(FakeLLM("Hasta 2 veces [1], vigente desde 2023-08-01.")).answer(
+        "¿Cuántas veces puedo presentar examen?")
+    assert ans.decision == Decision.ANSWERED and not ans.trace.verification_problems
+
+
+def test_fecha_inventada_sigue_rechazandose(build):
+    ans = build(FakeLLM("Hasta 2 veces [1], vigente desde 2019-01-15.")).answer(
+        "¿Cuántas veces puedo presentar examen?")
+    assert ans.decision == Decision.ABSTAINED
+
+
+def test_cita_con_corchetes_de_ancho_completo_se_acepta(build):
+    # gpt-oss suele citar con 【1】: antes se descartaba por "sin_citas" y "cifra_sin_respaldo:1".
+    ans = build(FakeLLM("Puedes presentarlo hasta 2 veces【1】")).answer(
+        "¿Cuántas veces puedo presentar examen?")
+    assert ans.decision == Decision.ANSWERED and ans.text.endswith("[1]")

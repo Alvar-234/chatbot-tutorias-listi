@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from ..config import load_settings
+from ..tls import use_system_certificates
 from .routes import configure_limiter, router
 
 log = logging.getLogger("chatbot")
@@ -17,6 +18,7 @@ log = logging.getLogger("chatbot")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.pipeline = None
+    use_system_certificates()
     try:
         settings = load_settings()
         rl = settings["privacy"]["rate_limit"]

@@ -3,14 +3,18 @@
 
 llm:
   temperature: 0.0
-  max_tokens: 600
+  max_tokens: 1500            # en modelos de razonamiento incluye el "pensamiento"; si se agota, la respuesta se descarta
   timeout_s: 30
+  retry_429_max_wait_s: 10    # ante límite de cuota (429) espera el retry-after si es <= a esto; si no, pasa al siguiente
   # Cadena de contingencia (sección 3.4): se prueba en orden; si uno falla, pasa al siguiente.
+  # `extra` se envía tal cual en el cuerpo de la petición (parámetros propios del proveedor).
   chain:
     - provider: groq          # groq | huggingface | local
       model: "openai/gpt-oss-20b"    # ver https://console.groq.com/docs/models (nivel gratuito)
+      extra:
+        reasoning_effort: "low"
     - provider: local
-      model: "REEMPLAZAR"     # p. ej. un modelo servido por Ollama
+      model: "llama3.2"     # p. ej. un modelo servido por Ollama
       base_url: "http://localhost:11434/v1"
 
 embeddings:
@@ -19,13 +23,19 @@ embeddings:
   passage_prefix: ""
 
 chunking:
-  size_tokens: 450            # 300-600 (sección 6.2); se compara experimentalmente
+  size_tokens: 300            # 300-600 (sección 6.2); se compara experimentalmente. Pequeño por el límite de 8k tokens/min de Groq
   overlap_pct: 12
 
 retrieval:
   k: 5
   k_candidates: 20
   rrf_k: 60
+  # Reordena los candidatos de la fusión con un cross-encoder. model: "" lo desactiva.
+  reranker:
+    model: "BAAI/bge-reranker-v2-m3"
+    candidates: 40            # cuántos candidatos de la fusión se reordenan (más = mejor y más lento)
+    max_length: 256
+    quantize_int8: true       # solo CPU: ~2x más rápido
 
 sufficiency:
   relevance_threshold: 0.35   # PROVISIONAL: calibrar con el subconjunto dev (sección 7.2, paso 5)

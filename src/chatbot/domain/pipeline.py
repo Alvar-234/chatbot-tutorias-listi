@@ -17,7 +17,7 @@ from .models import (Answer, Citation, Decision, LLMResponse, Route, ScoredChunk
 from .ports import LLMProvider, ProviderError, Retriever, StructuredRepo
 from .router import Router
 from .sufficiency import SufficiencyChecker
-from .verifier import AnswerVerifier
+from .verifier import AnswerVerifier, normalize_citations
 
 
 @dataclass
@@ -125,7 +125,8 @@ class ChatPipeline:
             return Answer(prompts.UNAVAILABLE_MSG, Decision.UNAVAILABLE, Route.DOCUMENTAL)
 
         with self._stage(trace, "verify"):
-            ver = self.verifier.verify(resp.text, [c.chunk.text for c in chunks])
+            ver = self.verifier.verify(resp.text,
+                                       [prompts.verification_source(c) for c in chunks])
         trace.verification_problems = ver.problems
         if not ver.ok:
             return self._abstain_or_handoff(session)
@@ -154,6 +155,7 @@ class ChatPipeline:
             except ProviderError as exc:
                 last = exc
                 continue
+            resp.text = normalize_citations(resp.text)
             trace.model_id, trace.provider = resp.model_id, resp.provider
             trace.prompt_tokens += resp.prompt_tokens
             trace.completion_tokens += resp.completion_tokens

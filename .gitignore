@@ -6,6 +6,8 @@ __pycache__/
 # Documentos institucionales y datos generados: no versionar
 data/raw/*
 !data/raw/.gitkeep
+# El manifiesto sí se versiona: indica qué documentos necesita el índice
+!data/raw/manifest.yaml
 data/processed/*
 !data/processed/.gitkeep
 data/chroma/*
@@ -15,3 +17,7 @@ logs/*
 !logs/.gitkeep
 eval/results/*
 !eval/results/.gitkeep
+# Generado por `pip install -e .`
+*.egg-info/
+# Corpus: los PDF institucionales no se versionan (autorización pendiente); los .md extraídos sí
+Documentos/**/*.pdf

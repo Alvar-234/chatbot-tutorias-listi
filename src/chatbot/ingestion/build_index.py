@@ -12,6 +12,7 @@ import time
 
 from ..config import load_settings
 from ..domain.models import Chunk
+from ..tls import use_system_certificates
 from .chunker import chunk_pages
 from .cleaner import clean_pages
 from .loaders import NeedsOCR, load_document
@@ -41,6 +42,7 @@ def main() -> None:
     from ..adapters.embeddings.sentence_transformers_embedder import SentenceTransformerEmbedder
     from ..adapters.vectorstore.chroma_store import ChromaVectorStore
 
+    use_system_certificates()
     settings = load_settings()
     chunks = build_chunks(settings)
     if not chunks:

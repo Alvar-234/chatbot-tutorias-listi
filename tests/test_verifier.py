@@ -26,3 +26,16 @@ def test_clave_inventada():
 
 def test_numeracion_de_lista_no_cuenta():
     assert v.verify("1. Hasta 2 veces [1].\n2. Clave DEMO-101 [1].", SRC).ok
+
+
+def test_respuesta_vacia_no_es_valida():
+    for texto in ("", "   \n"):
+        r = v.verify(texto, SRC, require_citations=False)
+        assert not r.ok and r.problems == ["respuesta_vacia"]
+
+
+def test_normaliza_variantes_de_cita():
+    from chatbot.domain.verifier import normalize_citations
+    assert normalize_citations("Lista【1】 y ［2］.") == "Lista[1] y [2]."
+    assert normalize_citations("Ver [1, 3] o [2; 4].") == "Ver [1][3] o [2][4]."
+    assert normalize_citations("Sin cita [nota].") == "Sin cita [nota]."

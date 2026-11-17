@@ -30,3 +30,11 @@ def test_cada_asignatura_del_ejemplo(build, repo):
     for clave, reqs in esperado.items():
         text = pipe.answer(f"requisitos de {clave}").text
         assert all(r in text for r in reqs)
+
+
+def test_respuesta_vacia_del_llm_usa_el_fallback(build):
+    # Bug 3: un modelo de razonamiento puede agotar max_tokens y devolver "".
+    ans = build(FakeLLM("")).answer(PREGUNTA)
+    assert ans.decision.value == "answered"
+    assert "DEMO-201" in ans.text and "DEMO-102" in ans.text
+    assert "respuesta_vacia" in ans.trace.verification_problems

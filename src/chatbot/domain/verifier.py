@@ -25,6 +25,15 @@ class VerificationResult:
     cited_indexes: list[int] = field(default_factory=list)
 
 
+_ALT_CITE = re.compile(r"[【［\[]\s*(\d+(?:\s*[,;]\s*\d+)*)\s*[】］\]]")
+
+
+def normalize_citations(text: str) -> str:
+    """Unifica variantes de cita a [n]: 【1】 y ［1］ (comunes en gpt-oss) o [1, 2] -> [1][2]."""
+    return _ALT_CITE.sub(
+        lambda m: "".join(f"[{n}]" for n in re.split(r"\s*[,;]\s*", m.group(1).strip())), text)
+
+
 def _norm_num(n: str) -> str:
     return n.replace(",", ".")
 
@@ -33,6 +42,8 @@ class AnswerVerifier:
     def verify(self, answer: str, sources: Sequence[str],
                require_citations: bool = True) -> VerificationResult:
         problems: list[str] = []
+        if not answer.strip():  # p. ej. un modelo de razonamiento que agotó max_tokens
+            return VerificationResult(ok=False, problems=["respuesta_vacia"])
         cited = sorted({int(m) for m in _CITE.findall(answer)})
 
         bad = [i for i in cited if i < 1 or i > len(sources)]

@@ -15,6 +15,8 @@ from .models import ScoredChunk
 from .text import normalize
 
 _ENTITY = re.compile(r"\b(?:[A-ZÁÉÍÓÚÑ]{2,}[-]?\d*|\w*\d+\w*)\b")
+# Marcadores que deja el redactor ([CORREO], [MATRICULA]...): no son entidades de la consulta.
+_REDACTION_MARKER = re.compile(r"\[[A-ZÁÉÍÓÚÑ_]+\]")
 
 
 @dataclass
@@ -26,6 +28,7 @@ class SufficiencyResult:
 
 def extract_entities(text: str, ignore: Iterable[str] = ()) -> set[str]:
     ignored = {normalize(i) for i in ignore}
+    text = _REDACTION_MARKER.sub(" ", text)
     found = _ENTITY.findall(text)
     if text.isupper():  # consulta escrita toda en mayúsculas: solo cifras y claves con dígitos
         found = [f for f in found if any(c.isdigit() for c in f)]

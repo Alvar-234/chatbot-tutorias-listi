@@ -15,10 +15,12 @@ sys.path.insert(0, str(ROOT / "eval"))
 from chatbot.api.deps import build_pipeline  # noqa: E402
 from chatbot.config import load_settings  # noqa: E402
 from chatbot.domain.models import Session  # noqa: E402
+from chatbot.tls import use_system_certificates  # noqa: E402
 from metrics import mrr, rate, recall_at_k  # noqa: E402
 
 
 def main(dataset: str, label: str = "run") -> None:
+    use_system_certificates()
     settings = load_settings()
     pipeline = build_pipeline(settings)
     rows = [json.loads(line) for line in Path(dataset).read_text(encoding="utf-8").splitlines() if line.strip()]

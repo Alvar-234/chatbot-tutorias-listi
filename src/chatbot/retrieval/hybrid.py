@@ -18,9 +18,11 @@ def rrf_fuse(rankings: Sequence[Sequence[str]], k: int = 60) -> dict[str, float]
 class HybridRetriever:
     def __init__(self, embedder: Embedder, vector_store: VectorStore, lexical: LexicalIndex, *,
                  k: int = 5, k_candidates: int = 20, rrf_k: int = 60,
-                 reranker: Optional[Callable[[str, list[ScoredChunk]], list[ScoredChunk]]] = None):
+                 reranker: Optional[Callable[[str, list[ScoredChunk]], list[ScoredChunk]]] = None,
+                 rerank_candidates: int = 20):
         self.embedder, self.vector, self.lexical = embedder, vector_store, lexical
         self.k, self.k_candidates, self.rrf_k, self.reranker = k, k_candidates, rrf_k, reranker
+        self.rerank_candidates = rerank_candidates
 
     def retrieve(self, query: str) -> list[ScoredChunk]:
         vec_hits = self.vector.search(self.embedder.embed_query(query), self.k_candidates)
@@ -37,5 +39,8 @@ class HybridRetriever:
             if not h.chunk.vigente:  # nunca citar documentos obsoletos (sección 6.2)
                 continue
             out.append(ScoredChunk(h.chunk, score, h.relevance))
-        out = out[: self.k]
-        return self.reranker(query, out) if self.reranker else out
+        if self.reranker:
+            # El reranker reordena un grupo MAYOR que k: su función es rescatar fragmentos que
+            # la fusión dejó abajo (p. ej. los que solo encontró uno de los dos índices).
+            out = self.reranker(query, out[: self.rerank_candidates])
+        return out[: self.k]
