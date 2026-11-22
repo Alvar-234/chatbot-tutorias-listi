@@ -76,7 +76,7 @@ manifest.yaml → cargar (PDF/MD/TXT) → limpiar encabezados y pies repetidos
 | LLM principal | Groq, modelo `openai/gpt-oss-20b` | API compatible con OpenAI; nivel gratuito |
 | LLM de contingencia | Ollama, modelo `llama3.2` | local; opcional |
 | Embeddings | `BAAI/bge-m3` con sentence-transformers | local, multilingüe |
-| Reranker | `BAAI/bge-reranker-v2-m3` (cross-encoder) | local; cuantizado a 8 bits en CPU |
+| Reranker | `BAAI/bge-reranker-v2-m3` (cross-encoder) o API de Voyage AI (`rerank-2.5`) | local cuantizado a 8 bits en CPU, o externo |
 | Almacén vectorial | ChromaDB (persistente en disco) | distancia coseno |
 | Búsqueda léxica | BM25 en Python puro | sin dependencias |
 | Datos estructurados | SQLite | plan de estudios y seriación |
@@ -114,7 +114,7 @@ chatbot-tutorias-listi/
 │   ├── adapters/                # implementaciones intercambiables de los puertos
 │   │   ├── llm/                 #   cliente OpenAI-compatible y cadena de proveedores
 │   │   ├── embeddings/          #   sentence-transformers
-│   │   ├── reranker/            #   cross-encoder
+│   │   ├── reranker/            #   cross-encoder local o API de Voyage AI
 │   │   ├── vectorstore/         #   Chroma
 │   │   ├── lexical/             #   BM25
 │   │   └── structured/          #   SQLite
@@ -263,7 +263,9 @@ Todo se ajusta en `config/settings.yaml`. Lo más relevante:
 | `embeddings.model` | Modelo de embeddings. Cambiarlo obliga a reconstruir el índice. |
 | `chunking.size_tokens` | Tamaño de fragmento. Cambiarlo obliga a reconstruir el índice. |
 | `retrieval.k` | Fragmentos que se envían al LLM. |
-| `retrieval.reranker.model` | Modelo de reordenamiento. `""` lo desactiva. |
+| `retrieval.reranker.provider` | `local` (cross-encoder en este equipo) o `voyage` (API; requiere `VOYAGE_API_KEY` en `.env`). Con `voyage` no se descarga el modelo local y, si la API falla, se usa el orden de la fusión. |
+| `retrieval.reranker.model` | Modelo local de reordenamiento. `""` lo desactiva. |
+| `retrieval.reranker.voyage_model` | Modelo de Voyage: `rerank-2.5` o `rerank-2.5-lite`. Sin método de pago, Voyage limita a 3 solicitudes y 10 000 tokens por minuto: insuficiente (cada pregunta envía ~10 000 tokens). |
 | `sufficiency.relevance_threshold` | Similitud mínima para intentar responder (provisional, sin calibrar). |
 | `privacy.rate_limit` | Solicitudes permitidas por ventana de tiempo. |
 

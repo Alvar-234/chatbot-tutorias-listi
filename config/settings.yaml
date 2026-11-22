@@ -30,8 +30,14 @@ retrieval:
   k: 5
   k_candidates: 20
   rrf_k: 60
-  # Reordena los candidatos de la fusión con un cross-encoder. model: "" lo desactiva.
+  # Reordena los candidatos de la fusión con un cross-encoder.
+  #   provider: local  -> modelo `model` en este equipo (lento en CPU, ~20 s). model: "" lo desactiva.
+  #   provider: voyage -> API de Voyage AI (`voyage_model`), requiere VOYAGE_API_KEY en .env.
+  #                       Envía la pregunta (ya redactada) y los fragmentos a un servicio externo.
   reranker:
+    provider: voyage
+    voyage_model: "rerank-2.5"   # rerank-2.5 | rerank-2.5-lite (multilingües); ver docs.voyageai.com/docs/reranker
+    timeout_s: 15
     model: "BAAI/bge-reranker-v2-m3"
     candidates: 40            # cuántos candidatos de la fusión se reordenan (más = mejor y más lento)
     max_length: 256

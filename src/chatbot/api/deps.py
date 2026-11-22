@@ -35,10 +35,16 @@ def build_pipeline(settings: Settings) -> ChatPipeline:
     retr = settings["retrieval"]
     rr = retr.get("reranker") or {}
     reranker = None
-    if rr.get("model"):
+    provider = rr.get("provider", "local")
+    if provider == "voyage" and rr.get("voyage_model"):
+        from ..adapters.reranker.voyage_reranker import VoyageReranker
+        reranker = VoyageReranker(rr["voyage_model"], timeout_s=rr.get("timeout_s", 15))
+    elif provider == "local" and rr.get("model"):
         from ..adapters.reranker.cross_encoder_reranker import CrossEncoderReranker
         reranker = CrossEncoderReranker(rr["model"], rr.get("max_length", 512),
                                         quantize_int8=rr.get("quantize_int8", False))
+    elif provider not in ("local", "voyage"):
+        raise ValueError(f"Reranker desconocido: {provider} (usa local | voyage)")
     retriever = HybridRetriever(
         embedder, ChromaVectorStore(str(settings.path("chroma_dir"))),
         BM25Index.from_jsonl(settings.path("chunks")),
@@ -62,6 +68,6 @@ def build_pipeline(settings: Settings) -> ChatPipeline:
             max_insufficient_before_handoff=pl["max_insufficient_before_handoff"],
             temperature=llm_cfg["temperature"], max_tokens=llm_cfg["max_tokens"]),
         versions={"embedding_model": info.get("embedding_model", ""),
-                  "reranker_model": rr.get("model", ""),
+                  "reranker_model": getattr(reranker, "model_id", ""),
                   "corpus_hash": info.get("corpus_hash", ""),
                   "chunking": info.get("chunking", {})})
