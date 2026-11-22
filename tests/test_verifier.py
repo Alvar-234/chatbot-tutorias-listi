@@ -39,3 +39,11 @@ def test_normaliza_variantes_de_cita():
     assert normalize_citations("Lista【1】 y ［2］.") == "Lista[1] y [2]."
     assert normalize_citations("Ver [1, 3] o [2; 4].") == "Ver [1][3] o [2][4]."
     assert normalize_citations("Sin cita [nota].") == "Sin cita [nota]."
+
+
+def test_citas_escritas_con_palabras():
+    from chatbot.domain.verifier import normalize_citations
+    assert normalize_citations("No. Según la fuente 1, el artículo 125 lo prohíbe.") == \
+        "No. Según [1], el artículo 125 lo prohíbe."
+    assert normalize_citations("Hasta dos veces (fuentes 2 y 3).") == "Hasta dos veces [2][3]."
+    assert normalize_citations("Dos inscripciones [1, 2].") == "Dos inscripciones [1][2]."

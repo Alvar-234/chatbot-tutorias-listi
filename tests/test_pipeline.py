@@ -101,3 +101,48 @@ def test_cita_con_corchetes_de_ancho_completo_se_acepta(build):
     ans = build(FakeLLM("Puedes presentarlo hasta 2 veces【1】")).answer(
         "¿Cuántas veces puedo presentar examen?")
     assert ans.decision == Decision.ANSWERED and ans.text.endswith("[1]")
+
+
+def test_dato_sin_respaldo_se_corrige_en_el_reintento(build):
+    # Caso real (Networking): el LLM inventó un subtotal "50%"; al señalarlo, lo quita.
+    llm = FakeLLM(["Hasta 2 veces, 50 en total [1].", "Puedes presentarlo hasta 2 veces [1]."])
+    ans = build(llm).answer("¿Cuántas veces puedo presentar examen?")
+    assert ans.decision == Decision.ANSWERED and len(llm.calls) == 2
+    assert "50" in llm.calls[1][-1]["content"]  # se le dijo qué dato no tenía respaldo
+    assert ans.trace.verification_problems == ["corregido_en_reintento:cifra_sin_respaldo:50"]
+
+
+def test_si_el_reintento_tambien_falla_se_abstiene(build):
+    llm = FakeLLM("Puedes presentarlo hasta 9 veces [1].")
+    ans = build(llm).answer("¿Cuántas veces puedo presentar examen?")
+    assert ans.decision == Decision.ABSTAINED and len(llm.calls) == 2
+
+
+def test_sin_reintentos_configurados_no_se_reintenta(build):
+    llm = FakeLLM("Puedes presentarlo hasta 9 veces [1].")
+    build(llm, verification_retries=0).answer("¿Cuántas veces puedo presentar examen?")
+    assert len(llm.calls) == 1
+
+
+def test_el_llm_que_reconoce_no_tener_informacion_cuenta_como_abstencion(build):
+    texto = "No cuentas con información suficiente: las fuentes solo hablan de exámenes [1]."
+    s = Session("s-abst")
+    pipe = build(FakeLLM(texto))
+    ans = pipe.answer("¿Hay becas de transporte?", s)
+    assert ans.decision == Decision.ABSTAINED and ans.text == texto  # conserva la explicación
+    assert pipe.answer("¿Y de comida?", s).decision == Decision.HANDOFF  # cuenta para derivar
+
+
+def test_negacion_a_media_respuesta_no_es_abstencion(build):
+    ans = build(FakeLLM("Puedes presentarlo hasta 2 veces [1]; no se menciona otro límite.")).answer(
+        "¿Cuántas veces puedo presentar examen?")
+    assert ans.decision == Decision.ANSWERED
+
+
+def test_negar_la_existencia_por_falta_de_fuentes_es_abstencion():
+    from chatbot.domain.prompts import is_self_abstention
+    assert is_self_abstention("No hay becas de transporte. Según [1] hay becas, pero no se "
+                              "menciona específicamente transporte.")
+    assert not is_self_abstention("No puedes comer dentro del centro de cómputo: el artículo "
+                                  "125 lo prohíbe [1].")
+    assert not is_self_abstention("No hay requisitos de seriación para Lengua II [1].")

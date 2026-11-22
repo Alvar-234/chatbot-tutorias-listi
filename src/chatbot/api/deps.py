@@ -77,7 +77,8 @@ def build_pipeline(settings: Settings) -> ChatPipeline:
         settings=PipelineSettings(
             max_query_chars=pl["max_query_chars"], history_turns=pl["history_turns"],
             max_insufficient_before_handoff=pl["max_insufficient_before_handoff"],
-            temperature=llm_cfg["temperature"], max_tokens=llm_cfg["max_tokens"]),
+            temperature=llm_cfg["temperature"], max_tokens=llm_cfg["max_tokens"],
+            verification_retries=pl.get("verification_retries", 1)),
         versions={"embedding_model": embedder.model_id,
                   "reranker_model": getattr(reranker, "model_id", ""),
                   "corpus_hash": info.get("corpus_hash", ""),

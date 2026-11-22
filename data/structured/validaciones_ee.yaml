@@ -5,8 +5,10 @@
 #   prerrequisitos: []          -> confirmado: no tiene prerrequisitos (aunque el PDF venga vacío)
 #   recomendadas: [EE, ...]     -> se recomienda cursarlas antes; NO es requisito obligatorio
 #   confirmado: [marca, ...]    -> marcas de `revisar` revisadas y correctas tal como están
-#   nota: "..."                 -> aclaración que acompaña a la EE
+#   nota: "..."                 -> aclaración PARA EL ESTUDIANTE: el chatbot la muestra siempre
+#                                  (la procedencia de cada dato va en comentarios, no en la nota)
 #   area: disciplinar           -> área confirmada (prevalece sobre el PDF y el mapa curricular)
+#   nombre: "..."               -> nombre corregido (p. ej. una errata del PDF); cambia la clave
 #
 # Regla general (revisión del 2026-11-22): para todas las EE la recomendación es cursarlas en
 # el periodo que marca el mapa curricular (se aplica al cruzar con el mapa, paso 2).
@@ -27,15 +29,15 @@ Tecnologías para la Integración de Soluciones:
 
 Prácticas Profesionales:
   confirmado: [horas_totales_no_cuadran]
-  nota: "Los valores del programa son correctos: 120 horas de prácticas."
+  # Valores del programa confirmados (2026-11-22).
+  nota: "Incluye 120 horas de prácticas profesionales."
 
 Servicio Social:
   confirmado: [creditos_no_cuadran_con_horas]
   nota: "480 horas comprobables por medio de reportes mensuales."
 
 Liderazgo y Emprendimiento:
-  confirmado: [horas_totales_no_cuadran]
-  nota: "75 horas totales, como indica el programa."
+  confirmado: [horas_totales_no_cuadran]  # 75 horas totales, como indica el programa (2026-11-22)
 
 Experiencia Recepcional:
   confirmado: [creditos_no_cuadran_con_horas]
@@ -87,7 +89,11 @@ Lectura y escritura de textos académicos:
 # (2026-11-22): estas dos EE tienen 9 créditos aunque su programa y el mapa indican 8.
 Principios de Ciberseguridad:
   creditos: 9
-  nota: "9 créditos (confirmado por la coordinación; el programa indica 8)."
+  # 9 créditos con 3 horas teóricas y 2 prácticas; el programa indica 8 créditos.
 Sistemas Operativos:
   creditos: 9
-  nota: "9 créditos (confirmado por la coordinación; el programa indica 8)."
+  # 9 créditos con 3 horas teóricas y 2 prácticas; el programa indica 8 créditos.
+
+# Errata del PDF ("de Ia Información"); el mapa curricular lo escribe bien.
+Sistemas Electrónicos para Tecnologías de Ia Información:
+  nombre: "Sistemas Electrónicos para Tecnologías de la Información"

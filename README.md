@@ -54,8 +54,10 @@ Dos rutas de evidencia:
   (léxica con BM25 y semántica con embeddings) y, al preguntar, se fusionan ambos resultados, se
   reordenan con un reranker y los 5 mejores se envían al LLM como fuentes.
 - **Estructurada:** datos exactos del plan de estudios y la seriación en SQLite. Si el LLM falla
-  o su respuesta no pasa la verificación, se entrega el dato de la base tal cual.
-  *Hoy solo contiene datos ficticios de ejemplo (`DEMO-…`)*; ver [Pendientes](#pendientes).
+  o su respuesta no pasa la verificación, se entrega el dato de la base tal cual. Si el LLM
+  omite un requisito, una recomendación o una nota de la materia, se corrige o se añade.
+  Contiene las 50 EE del plan 2023 (créditos, horas, periodo sugerido, área, seriación y
+  recomendaciones), extraídas de los programas de EE y validadas con la coordinación.
 
 La ingesta de documentos es un proceso aparte, que se ejecuta una vez y cada vez que cambia el
 corpus (`src/chatbot/ingestion/build_index.py`):
@@ -99,7 +101,9 @@ chatbot-tutorias-listi/
 │   ├── processed/               # chunks.jsonl e index_info.json (generados)
 │   ├── chroma/                  # índice vectorial (generado)
 │   └── structured/
-│       ├── sample/*.csv         # asignaturas y seriación FICTICIAS de ejemplo
+│       ├── validaciones_ee.yaml # revisión manual de los programas de EE (se versiona)
+│       ├── extraido/*.csv       # datos extraídos de los programas (generado)
+│       ├── sample/*.csv         # asignaturas y seriación FICTICIAS para las pruebas
 │       └── plan_estudios.db     # SQLite (generado)
 ├── src/chatbot/
 │   ├── domain/                  # lógica propia; no importa librerías externas
@@ -126,7 +130,8 @@ chatbot-tutorias-listi/
 │   ├── config.py                # carga de settings.yaml y .env
 │   └── tls.py                   # certificados del sistema (ver Problemas frecuentes)
 ├── web/index.html               # interfaz de chat
-├── scripts/init_db.py           # crea la base SQLite desde CSV
+├── scripts/extract_ee.py        # programas de EE (PDF) + mapa curricular -> CSV revisables
+├── scripts/init_db.py           # crea la base SQLite desde esos CSV
 ├── eval/                        # métricas y ejecución de experimentos
 ├── tests/                       # pruebas unitarias
 ├── logs/                        # traces.jsonl (generado)
@@ -187,16 +192,24 @@ respaldo). Este archivo no se sube al repositorio.
 
 **4. Crear la base de datos estructurada**
 
+Coloca los programas de EE (PDF) en `documentos_ee_pdf/` (no están en el repositorio) y ejecuta:
+
 ```bash
-python scripts/init_db.py
+python scripts/extract_ee.py      # PDF + mapa curricular + validaciones -> data/structured/extraido/
+python scripts/init_db.py         # CSV -> data/structured/plan_estudios.db (se crea desde cero)
 ```
 
-Es obligatorio aunque los datos sean de ejemplo: sin la base, la API no arranca el asistente.
+`extract_ee.py` aplica la revisión de `data/structured/validaciones_ee.yaml` y marca en la
+columna `revisar` lo que no cuadra; `init_db.py` se niega a cargar filas pendientes de revisar.
+Detén el servidor antes de `init_db.py`: Windows no deja reemplazar la base mientras está
+abierta. Sin los PDF, `init_db.py` carga los datos ficticios de `data/structured/sample/` (avisa).
+La API no arranca el asistente sin la base.
 
 **5. Preparar el corpus y construir el índice**
 
 Los PDF institucionales **no están en el repositorio**: hay que conseguirlos y colocarlos en
-`Documentos/` con los nombres que indica `data/raw/manifest.yaml`. Ese archivo lista qué
+`Documentos/` (y los 44 programas de EE en `documentos_ee_pdf/`) con los nombres que indica
+`data/raw/manifest.yaml`. Ese archivo lista qué
 documentos se indexan, una entrada por documento, con la ruta relativa a `data/raw/`:
 
 ```yaml
@@ -208,7 +221,14 @@ documents:
     valid_from: "2025-09-19"            # opcional; solo si la fecha está confirmada
     vigente: true                       # false = se excluye de las respuestas
     url: "https://..."                  # opcional; enlace que se muestra en la cita
+    contexto: "Programa de la EE ..."   # opcional; se antepone a cada fragmento
 ```
+
+`contexto` se usa en los programas de EE: un fragmento de "Saberes" o "Evaluación" no nombra
+la materia, y sin el prefijo no se encuentra al preguntar "¿qué temas ve Networking?". El
+`doc_id` de un programa debe ser `programa_ee_<clave>` (con `_` en vez de `-`): si la pregunta
+nombra una materia, el asistente descarta los fragmentos de los programas de **otras** materias,
+porque temarios y bibliografías se parecen y el LLM los mezclaba.
 
 Después:
 
@@ -216,8 +236,10 @@ Después:
 python -m chatbot.ingestion.build_index
 ```
 
-La primera vez descarga el modelo de embeddings. Con el corpus actual genera unos 276 fragmentos
-y tarda de 3 a 5 minutos en CPU. **Hay que repetir este paso cada vez que se agregue o modifique
+Con el corpus actual genera unos 591 fragmentos (315 de los programas de EE). Con los embeddings
+de NVIDIA tarda menos de un minuto; con `bge-m3` local, la primera vez descarga el modelo y tarda
+varios minutos en CPU. Los embeddings se calculan antes de tocar el índice: si fallan, el
+índice anterior queda intacto. **Hay que repetir este paso cada vez que se agregue o modifique
 un documento**, o se cambie `chunking` o el modelo de embeddings en `settings.yaml`.
 
 **6. Arrancar el chatbot**
@@ -282,8 +304,13 @@ se muestran al estudiante.
 Medido con el corpus actual en un equipo sin GPU (6 hilos):
 
 - **Con los tres modelos de NVIDIA (configuración por defecto): 4–7 s por respuesta** (reranker
-  1.5–2.5 s), 9/9 correctas en la prueba de humo. Construir el índice tarda ~40 s. Contrapartida:
-  la pregunta (ya sin datos personales) y los fragmentos del corpus se envían a NVIDIA.
+  1.5–2.5 s), 9/9 correctas en la prueba de humo. Construir el índice tarda menos de un minuto.
+  Contrapartida: la pregunta (ya sin datos personales) y los fragmentos del corpus se envían a
+  NVIDIA.
+- **El filtro de contenido de NVIDIA rechaza a veces fragmentos inofensivos** (error 422 "content
+  safety screening"; p. ej. un temario de Bases de Datos Distribuidas). Embeddings: el fragmento
+  recibe un vector aproximado y `build_index` lo avisa. Reranker: se aísla el pasaje rechazado y
+  se reordenan los demás. En ambos casos el texto sigue en la búsqueda léxica.
 - **Todo local: unos 20 s por respuesta**, casi toda del reranker. Sin reranker
   (`retrieval.reranker.model: ""`) baja a 2–3 s, pero empeoran las preguntas donde el estudiante
   y el reglamento usan palabras distintas: "¿cuántas veces puedo cursar una experiencia
@@ -332,22 +359,32 @@ los tiempos por etapa.
 ## Pruebas y evaluación
 
 ```bash
-pytest                                                # pruebas unitarias
-python eval/run_experiment.py eval/dataset/dev.jsonl  # evaluación con el pipeline real
+pytest                                                        # pruebas unitarias (sin red)
+python eval/run_experiment.py eval/dataset/dev.jsonl etiqueta  # evaluación con el pipeline real
 ```
 
-Las pruebas unitarias cubren el dominio, el redactor, BM25, la fusión, el reranker (con un modelo
-simulado), el fragmentador, el cliente de LLM (sin red), el repositorio SQLite y la API.
-El pipeline real (Groq, embeddings, Chroma, reranker, ingesta de PDF) se ha probado a mano con
-9 preguntas sobre el corpus actual. `eval/run_experiment.py` aún no se ha ejecutado: falta
-construir el conjunto de evaluación (`eval/dataset/dev.example.jsonl` muestra el formato).
+Las pruebas unitarias cubren el dominio, el redactor, BM25, la fusión, los rerankers y los
+clientes de API (sin red), el fragmentador, el extractor de programas de EE, el repositorio
+SQLite y la API.
+
+`eval/dataset/dev.jsonl` tiene 54 preguntas con su resultado esperado: seriación (9), datos de
+las materias (12), contenido de los programas de EE (14), mapa curricular (7), reglamentos y
+trámites (6), preguntas sin evidencia que deben abstenerse (4), derivación (1) y fuera de
+alcance (1). Los hechos esperados salen de las fuentes (programas, validaciones y mapa), no de
+las respuestas del chatbot. El script imprime OK/MAL por pregunta, resume por categoría y guarda
+todo (respuestas y trazas) en `eval/results/`.
+
+Con la configuración de NVIDIA: 54/54 en las dos últimas ejecuciones, recuperación del
+fragmento correcto 100 %, p95 de latencia ~7 s. **Ojo:** el sistema se ajustó viendo este
+conjunto (dev). Para la tesis hace falta un conjunto *holdout* con preguntas redactadas por
+otras personas (tutores, estudiantes) que solo se ejecute al final, sin ajustar nada después.
 
 ## Pendientes
 
 - [ ] **Corpus:** faltan documentos; el Reglamento de Movilidad 2015 está escaneado y requiere OCR.
 - [ ] **Autorización** de cada documento y fechas de vigencia (`valid_from`) en el manifiesto.
-- [ ] **Plan de estudios y seriación reales** en CSV con claves únicas; hoy la ruta estructurada
-      solo tiene datos ficticios y el mapa curricular se consulta como documento.
+- [ ] **Claves oficiales de las EE:** el campo "Código" de los programas está vacío y el del mapa
+      se repite entre materias; hoy la clave sale del nombre (`programacion`, `desarrollo-web`).
 - [ ] **Contactos de ayuda** en `config/sensitive_topics.yaml` (siguen como `REEMPLAZAR`) y lista
       de temas sensibles validada con tutores. Algunas frases derivan de más (p. ej. "tramita"
       deriva preguntas informativas sobre trámites).

@@ -89,6 +89,13 @@ class SubjectFact:
     area: Optional[str]
     plan_vigente: Optional[str]
     requisitos: tuple[Prerequisite, ...] = ()
+    caracter: Optional[str] = None  # OB | OP
+    horas_teoricas: Optional[int] = None
+    horas_practicas: Optional[int] = None
+    horas_otras: Optional[int] = None
+    horas_totales: Optional[int] = None
+    modalidad: Optional[str] = None
+    nota: Optional[str] = None
 
 
 @dataclass(frozen=True)

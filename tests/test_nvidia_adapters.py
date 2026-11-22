@@ -85,3 +85,48 @@ def test_cada_proveedor_de_embeddings_tiene_su_coleccion():
 def test_fabrica_de_llm_conoce_nvidia():
     (nv,) = build_llm_chain({"chain": [{"provider": "nvidia", "model": "m"}]})
     assert nv._url.startswith("https://integrate.api.nvidia.com/v1")
+
+
+def test_fragmento_rechazado_por_el_filtro_se_aproxima_con_sus_mitades(fake_post):
+    calls, queue, _ = fake_post
+    safety = httpx.Response(422, request=REQ, json={"error": {"message": "input rejected by content safety screening"}})
+    queue.extend([safety,                          # el lote completo
+                  emb_response([[1.0, 1.0]]),      # "a" sola: pasa
+                  safety,                          # "b c d" completa: rechazada
+                  emb_response([[0.0, 2.0], [2.0, 0.0]])])  # sus dos mitades: pasan
+    e = NvidiaEmbedder("m", api_key="k")
+    assert e.embed_documents(["a", "b c d"]) == [[1.0, 1.0], [1.0, 1.0]]
+    assert len(e.warnings) == 1 and "b c d" in e.warnings[0]
+    assert calls[-1][1]["input"] == ["b", "c d"]
+
+
+def test_otros_errores_422_no_se_esconden(fake_post):
+    _, queue, _ = fake_post
+    queue.append(httpx.Response(422, request=REQ, json={"error": {"message": "invalid input_type"}}))
+    with pytest.raises(httpx.HTTPStatusError):
+        NvidiaEmbedder("m", api_key="k").embed_documents(["a"])
+
+
+def test_reranker_aisla_el_pasaje_rechazado_por_el_filtro(fake_post):
+    calls, queue, _ = fake_post
+    safety = httpx.Response(422, request=REQ, json={"error": {"message": "input rejected by content safety screening"}})
+    C = ScoredChunk(Chunk("c", "temario de big data", "d"), 0.02, 0.50)
+    queue.extend([safety,                                                     # [A, B, C]
+                  httpx.Response(200, request=REQ, json={"rankings": [{"index": 0, "logit": -2.0}]}),  # [A]
+                  safety,                                                     # [B, C]
+                  httpx.Response(200, request=REQ, json={"rankings": [{"index": 0, "logit": -1.0}]}),  # [B]
+                  safety])                                                    # [C]: rechazado
+    out = NvidiaReranker(api_key="k")("q", [A, B, C])
+    assert [o.chunk.id for o in out] == ["b", "a", "c"]
+    assert out[0].rerank_score == -1.0 and out[2].rerank_score is None
+
+
+def test_foco_en_la_materia_descarta_programas_de_otras():
+    from chatbot.domain.pipeline import focus_on_subjects
+    def ch(doc):
+        return ScoredChunk(Chunk(doc + "-1", "x", doc), 0.0, 0.5)
+    web, fund, regl = ch("programa_ee_desarrollo_web"), ch("programa_ee_fundamentos_de_tecnologias_web"), ch("estatuto_alumnos")
+    assert focus_on_subjects([web, fund, regl], ["desarrollo-web"]) == [web, regl]
+    # sin fragmentos del programa pedido, o sin materia en la pregunta: no se filtra nada
+    assert focus_on_subjects([fund, regl], ["desarrollo-web"]) == [fund, regl]
+    assert focus_on_subjects([web, fund], []) == [web, fund]

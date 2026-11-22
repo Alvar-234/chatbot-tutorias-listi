@@ -57,7 +57,8 @@ def test_recomendacion_omitida_se_agrega_al_final(handoff):
     from chatbot.privacy.redactor import Redactor
     conn = sqlite3.connect(":memory:")
     init_db(conn)
-    conn.executemany("INSERT INTO asignatura VALUES (?,?,?,?,?,?)", [
+    conn.executemany("INSERT INTO asignatura (clave, nombre, creditos, periodo, area, plan_vigente) "
+                     "VALUES (?,?,?,?,?,?)", [
         ("networking", "Networking", 9, "3", "disciplinar", "LISTI 2023"),
         ("administracion-de-servidores", "Administración de Servidores", 8, "4", "disciplinar", "LISTI 2023")])
     conn.execute("INSERT INTO seriacion VALUES ('administracion-de-servidores', 'networking', 'recomendada')")
@@ -82,3 +83,12 @@ def test_pregunta_solo_de_creditos_agrega_el_requisito(build):
 def test_negar_requisitos_que_existen_usa_el_fallback(build):
     ans = build(FakeLLM("DEMO-202 no tiene requisitos.")).answer(PREGUNTA)
     assert "DEMO-201" in ans.text and "DEMO-102" in ans.text
+
+
+def test_nota_validada_omitida_se_agrega():
+    from chatbot.domain.models import SubjectFact
+    from chatbot.domain.prompts import omitted_notes
+    ss = SubjectFact("servicio-social", "Servicio Social", 12, "7", "terminal", "LISTI 2023",
+                     horas_totales=60, nota="480 horas comprobables por medio de reportes mensuales.")
+    assert omitted_notes("Servicio Social tiene 60 horas en total.", [ss]) == [ss]
+    assert omitted_notes("Son 480 horas comprobables con reportes mensuales.", [ss]) == []

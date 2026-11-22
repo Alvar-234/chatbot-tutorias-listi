@@ -27,6 +27,25 @@ class PipelineSettings:
     max_insufficient_before_handoff: int = 2
     temperature: float = 0.0
     max_tokens: int = 600
+    verification_retries: int = 1  # reintentos si la respuesta trae datos sin respaldo
+
+
+PROGRAM_PREFIX = "programa_ee_"  # doc_id de los programas de EE: programa_ee_<clave con _>
+
+
+def program_doc_id(clave: str) -> str:
+    return PROGRAM_PREFIX + clave.replace("-", "_")
+
+
+def focus_on_subjects(chunks: Sequence[ScoredChunk], subjects: Sequence[str]) -> list[ScoredChunk]:
+    """Si la pregunta nombra materias y hay fragmentos de SUS programas, descarta los de los
+    programas de otras materias (las bibliografías y temarios se parecen y el LLM los mezcla).
+    Los demás documentos (reglamentos, mapa curricular...) no se tocan."""
+    wanted = {program_doc_id(s) for s in subjects}
+    if not wanted or not any(c.chunk.doc_id in wanted for c in chunks):
+        return list(chunks)
+    return [c for c in chunks
+            if not c.chunk.doc_id.startswith(PROGRAM_PREFIX) or c.chunk.doc_id in wanted]
 
 
 class ChatPipeline:
@@ -83,7 +102,7 @@ class ChatPipeline:
             return Answer(prompts.OUT_OF_SCOPE_MSG, Decision.OUT_OF_SCOPE, Route.OUT_OF_SCOPE)
         if decision.route == Route.STRUCTURED:
             return self._structured(query, decision.subjects, trace)
-        return self._documental(query, session, trace)
+        return self._documental(query, session, trace, decision.subjects)
 
     def _structured(self, query: str, subjects: Sequence[str], trace: Trace) -> Answer:
         with self._stage(trace, "evidence"):
@@ -117,13 +136,18 @@ class ChatPipeline:
                     text += "".join(
                         f"\n\nRecomendación (no es requisito obligatorio): cursar {r.nombre} "
                         f"antes de {f.nombre}." for f, r in recomendadas)
+                    # Las notas validadas (p. ej. "480 horas comprobables" del servicio social)
+                    # corrigen o matizan el dato del programa: nunca se omiten.
+                    text += "".join(f"\n\nNota sobre {f.nombre}: {f.nota}"
+                                    for f in prompts.omitted_notes(resp.text, facts))
         except ProviderError:
             text = fallback
         return Answer(text, Decision.ANSWERED, Route.STRUCTURED, citation)
 
-    def _documental(self, query: str, session: Session, trace: Trace) -> Answer:
+    def _documental(self, query: str, session: Session, trace: Trace,
+                    subjects: Sequence[str] = ()) -> Answer:
         with self._stage(trace, "evidence"):
-            chunks = self.retriever.retrieve(query)
+            chunks = focus_on_subjects(self.retriever.retrieve(query), subjects)
         trace.retrieved_ids = [c.chunk.id for c in chunks]
 
         with self._stage(trace, "sufficiency"):
@@ -134,18 +158,39 @@ class ChatPipeline:
             return self._abstain_or_handoff(session)
 
         history = list(session.history)[-self.s.history_turns:]
+        messages = prompts.build_messages(query, chunks, history)
+        sources = [prompts.verification_source(c) for c in chunks]
         try:
             with self._stage(trace, "generate"):
-                resp = self._generate(prompts.build_messages(query, chunks, history), trace)
+                resp = self._generate(messages, trace)
+            with self._stage(trace, "verify"):
+                ver = self.verifier.verify(resp.text, sources)
+            trace.verification_problems = ver.problems
+            for _ in range(self.s.verification_retries):
+                if ver.ok:
+                    break
+                # Suele ser un detalle (un subtotal calculado, una cifra reescrita): se le
+                # señala al LLM y se le pide de nuevo. Si vuelve a fallar, se abstiene.
+                retry = messages + [{"role": "assistant", "content": resp.text},
+                                    {"role": "user", "content": prompts.retry_instruction(ver.problems, len(chunks))}]
+                with self._stage(trace, "generate_retry"):
+                    resp = self._generate(retry, trace)
+                with self._stage(trace, "verify_retry"):
+                    first, ver = ver.problems, self.verifier.verify(resp.text, sources)
+                trace.verification_problems = (
+                    [f"corregido_en_reintento:{p}" for p in first] if ver.ok
+                    else first + [f"reintento:{p}" for p in ver.problems])
         except ProviderError:
             return Answer(prompts.UNAVAILABLE_MSG, Decision.UNAVAILABLE, Route.DOCUMENTAL)
-
-        with self._stage(trace, "verify"):
-            ver = self.verifier.verify(resp.text,
-                                       [prompts.verification_source(c) for c in chunks])
-        trace.verification_problems = ver.problems
         if not ver.ok:
             return self._abstain_or_handoff(session)
+        if prompts.is_self_abstention(resp.text):
+            # El propio LLM dice que las fuentes no lo cubren ("No cuento con información...").
+            # Cuenta como abstención (y para la derivación), conservando su explicación.
+            ans = self._abstain_or_handoff(session)
+            if ans.decision == Decision.ABSTAINED:
+                ans.text = resp.text
+            return ans
 
         cited = [chunks[i - 1] for i in ver.cited_indexes]
         trace.cited_ids = [c.chunk.id for c in cited]

@@ -9,6 +9,7 @@ data/raw/manifest.yaml:
       valid_from: "2023-08-01"
       vigente: true
       url: "https://..."
+      contexto: "Programa de la EE ..."   # opcional: se antepone a cada fragmento
 """
 from __future__ import annotations
 

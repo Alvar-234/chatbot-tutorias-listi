@@ -29,7 +29,9 @@ class FakeLLM:
         self.calls.append(messages)
         if self.fail:
             raise ProviderError("caído")
-        return LLMResponse(self.text, "fake-model", "fake", 10, 5)
+        # text puede ser una lista: una respuesta por llamada (la última se repite)
+        text = self.text[min(len(self.calls), len(self.text)) - 1] if isinstance(self.text, list) else self.text
+        return LLMResponse(text, "fake-model", "fake", 10, 5)
 
 
 class FakeRetriever:

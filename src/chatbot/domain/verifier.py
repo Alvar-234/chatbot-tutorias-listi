@@ -28,10 +28,18 @@ class VerificationResult:
 _ALT_CITE = re.compile(r"[【［\[]\s*(\d+(?:\s*[,;]\s*\d+)*)\s*[】］\]]")
 
 
+# "según la fuente 1", "(fuentes 2 y 3)": Nemotron cita a veces con palabras.
+_WORD_CITE = re.compile(r"\(?\b(?:las?\s+)?fuentes?\s+(\d+(?:\s*(?:,|y)\s*\d+)*)\b\)?",
+                        re.IGNORECASE)
+
+
 def normalize_citations(text: str) -> str:
-    """Unifica variantes de cita a [n]: 【1】 y ［1］ (comunes en gpt-oss) o [1, 2] -> [1][2]."""
-    return _ALT_CITE.sub(
-        lambda m: "".join(f"[{n}]" for n in re.split(r"\s*[,;]\s*", m.group(1).strip())), text)
+    """Unifica variantes de cita a [n]: 【1】 y ［1］ (comunes en gpt-oss), [1, 2] -> [1][2]
+    y "la fuente 1" -> [1]."""
+    def brackets(nums: str) -> str:
+        return "".join(f"[{n}]" for n in re.split(r"\s*(?:,|;|y)\s*", nums.strip()))
+    text = _ALT_CITE.sub(lambda m: brackets(m.group(1)), text)
+    return _WORD_CITE.sub(lambda m: brackets(m.group(1)), text)
 
 
 def _norm_num(n: str) -> str:

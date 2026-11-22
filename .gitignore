@@ -13,6 +13,7 @@ data/processed/*
 data/chroma/*
 !data/chroma/.gitkeep
 data/structured/*.db
+data/structured/*.db.tmp
 logs/*
 !logs/.gitkeep
 eval/results/*

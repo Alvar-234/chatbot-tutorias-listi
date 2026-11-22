@@ -62,3 +62,314 @@ documents:
     doc_id: directorio_fei
     title: "Directorio de la Facultad de Estadística e Informática"
     vigente: true
+
+  # Programas de experiencia educativa (documentos_ee_pdf/, plan 2023). Sus datos generales
+  # (créditos, horas, seriación) van a la base SQLite con scripts/extract_ee.py; aquí se
+  # indexa el resto: justificación, saberes, evaluación, bibliografía, perfil docente.
+  - file: "../../documentos_ee_pdf/Programa EE Algebra Lineal.pdf"
+    doc_id: programa_ee_algebra_lineal
+    title: "Programa de EE: Álgebra Lineal"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Álgebra Lineal (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE Experiencia Recepcional.pdf"
+    doc_id: programa_ee_experiencia_recepcional
+    title: "Programa de EE: Experiencia Recepcional"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Experiencia Recepcional (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE Matemáticas Discretas.pdf"
+    doc_id: programa_ee_matematicas_discretas
+    title: "Programa de EE: Matemáticas Discretas"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Matemáticas Discretas (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE Matemáticas para TI.pdf"
+    doc_id: programa_ee_matematicas_para_las_tecnologias_de_la_informacion
+    title: "Programa de EE: Matemáticas para las Tecnologías de la Información"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Matemáticas para las Tecnologías de la Información (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE Probabilidad y Estadística.pdf"
+    doc_id: programa_ee_probabilidad_y_estadistica
+    title: "Programa de EE: Probabilidad y Estadística"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Probabilidad y Estadística (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE Seminario Investigacion.pdf"
+    doc_id: programa_ee_seminario_de_investigacion
+    title: "Programa de EE: Seminario de Investigación"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Seminario de Investigación (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_ Gestión de Proyectos de TI.pdf"
+    doc_id: programa_ee_gestion_de_proyectos_de_tecnologias_de_la_informacion
+    title: "Programa de EE: Gestión de proyectos de Tecnologías de la Información"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Gestión de proyectos de Tecnologías de la Información (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_ Ética y Gestión Normativa.pdf"
+    doc_id: programa_ee_etica_y_gestion_normativa
+    title: "Programa de EE: Ética y Gestión Normativa"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Ética y Gestión Normativa (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_Administracíón de Servidores.pdf"
+    doc_id: programa_ee_administracion_de_servidores
+    title: "Programa de EE: Administración de Servidores"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Administración de Servidores (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_AdmonBases de Datos.pdf"
+    doc_id: programa_ee_administracion_de_bases_de_datos
+    title: "Programa de EE: Administración de Bases de Datos"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Administración de Bases de Datos (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_Algoritmos y Programación.pdf"
+    doc_id: programa_ee_algoritmos_y_programacion
+    title: "Programa de EE: Algoritmos y Programación"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Algoritmos y Programación (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_Bases de Datos Post-Relacionales.pdf"
+    doc_id: programa_ee_bases_de_datos_post_relacionales
+    title: "Programa de EE: Bases de Datos Post-Relacionales"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Bases de Datos Post-Relacionales (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_Bases de Datos Relacionales.pdf"
+    doc_id: programa_ee_bases_de_datos_relacionales
+    title: "Programa de EE: Bases de Datos Relacionales"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Bases de Datos Relacionales (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_Bases de DatosDistribuidas.pdf"
+    doc_id: programa_ee_bases_de_datos_distribuidas
+    title: "Programa de EE: Bases de Datos Distribuidas"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Bases de Datos Distribuidas (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_Ciberseguridad.pdf"
+    doc_id: programa_ee_principios_de_ciberseguridad
+    title: "Programa de EE: Principios de Ciberseguridad"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Principios de Ciberseguridad (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_CiberseguridadAplicada.pdf"
+    doc_id: programa_ee_ciberseguridad_aplicada
+    title: "Programa de EE: Ciberseguridad Aplicada"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Ciberseguridad Aplicada (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_Ciencia de Datos.pdf"
+    doc_id: programa_ee_ciencia_de_datos
+    title: "Programa de EE: Ciencia de Datos"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Ciencia de Datos (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_ComputoNube.pdf"
+    doc_id: programa_ee_computo_en_la_nube
+    title: "Programa de EE: Cómputo en la nube"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Cómputo en la nube (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_DesarrolloMovil.pdf"
+    doc_id: programa_ee_desarrollo_movil
+    title: "Programa de EE: Desarrollo Móvil"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Desarrollo Móvil (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_DesarrolloWeb.pdf"
+    doc_id: programa_ee_desarrollo_web
+    title: "Programa de EE: Desarrollo Web"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Desarrollo Web (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_FundamentosTecnologiasWeb.pdf"
+    doc_id: programa_ee_fundamentos_de_tecnologias_web
+    title: "Programa de EE: Fundamentos de Tecnologías Web"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Fundamentos de Tecnologías Web (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_Gestión del Proceso de Desarrollo de Software.pdf"
+    doc_id: programa_ee_gestion_del_proceso_de_desarrollo_de_software
+    title: "Programa de EE: Gestión del Proceso de Desarrollo de Software"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Gestión del Proceso de Desarrollo de Software (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_Ingenieria de Datos.pdf"
+    doc_id: programa_ee_ingenieria_de_datos
+    title: "Programa de EE: Ingeniería de datos"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Ingeniería de datos (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_Interfaces de Usuario Avanzadas.pdf"
+    doc_id: programa_ee_interfaces_de_usuario_avanzadas
+    title: "Programa de EE: Interfaces de Usuario Avanzadas"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Interfaces de Usuario Avanzadas (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_Internet de las cosas.pdf"
+    doc_id: programa_ee_internet_de_las_cosas_iot
+    title: "Programa de EE: Internet de las Cosas - IoT"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Internet de las Cosas - IoT (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_Introducción al Pensamiento Computacional.pdf"
+    doc_id: programa_ee_introduccion_al_pensamiento_computacional
+    title: "Programa de EE: Introducción al Pensamiento Computacional"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Introducción al Pensamiento Computacional (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_Liderazgo y Emprendimiento.pdf"
+    doc_id: programa_ee_liderazgo_y_emprendimiento
+    title: "Programa de EE: Liderazgo y Emprendimiento"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Liderazgo y Emprendimiento (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_LTC-Evaluación de la UX.pdf"
+    doc_id: programa_ee_evaluacion_de_experiencia_de_usuario
+    title: "Programa de EE: Evaluación de Experiencia de Usuario"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Evaluación de Experiencia de Usuario (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_LTC-ExperienciadeUsuario.pdf"
+    doc_id: programa_ee_experiencia_de_usuario
+    title: "Programa de EE: Experiencia de Usuario"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Experiencia de Usuario (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_LTC-InteracccionHumanoComputadora.pdf"
+    doc_id: programa_ee_interaccion_humano_computadora
+    title: "Programa de EE: Interacción Humano Computadora"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Interacción Humano Computadora (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_LTC-UX_Videojuegos.pdf"
+    doc_id: programa_ee_videojuegos_serios
+    title: "Programa de EE: Videojuegos Serios"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Videojuegos Serios (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_Networking.pdf"
+    doc_id: programa_ee_networking
+    title: "Programa de EE: Networking"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Networking (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_Prácticas Profesionales.pdf"
+    doc_id: programa_ee_practicas_profesionales
+    title: "Programa de EE: Prácticas Profesionales"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Prácticas Profesionales (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_Procesos de Desarrollo de Software.pdf"
+    doc_id: programa_ee_procesos_de_desarrollo_de_software
+    title: "Programa de EE: Procesos de Desarrollo de Software"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Procesos de Desarrollo de Software (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_Programación.pdf"
+    doc_id: programa_ee_programacion
+    title: "Programa de EE: Programación"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Programación (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_Proyectos Integrador de Software y Hardware .pdf"
+    doc_id: programa_ee_proyecto_integrador_de_software_y_hardware
+    title: "Programa de EE: Proyecto Integrador de Software y Hardware"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Proyecto Integrador de Software y Hardware (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_RedesAplicadas.pdf"
+    doc_id: programa_ee_redes_aplicadas
+    title: "Programa de EE: Redes Aplicadas"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Redes Aplicadas (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_Servicio Social.pdf"
+    doc_id: programa_ee_servicio_social
+    title: "Programa de EE: Servicio Social"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Servicio Social (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_SistemasElectronicosparaTI.pdf"
+    doc_id: programa_ee_sistemas_electronicos_para_tecnologias_de_la_informacion
+    title: "Programa de EE: Sistemas Electrónicos para Tecnologías de la Información"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Sistemas Electrónicos para Tecnologías de la Información (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_SistemasOperativos.pdf"
+    doc_id: programa_ee_sistemas_operativos
+    title: "Programa de EE: Sistemas Operativos"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Sistemas Operativos (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_Tecnologias para la Integracion de Soluciones.pdf"
+    doc_id: programa_ee_tecnologias_para_la_integracion_de_soluciones
+    title: "Programa de EE: Tecnologías para la Integración de Soluciones"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Tecnologías para la Integración de Soluciones (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_Topicos_Selectos_de_Tecnologias_Web.pdf"
+    doc_id: programa_ee_topicos_selectos_de_tecnologias_web
+    title: "Programa de EE: Tópicos Selectos de Tecnologías Web"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Tópicos Selectos de Tecnologías Web (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_TSU_Lc_Fundamentos-de-las-TI.pdf"
+    doc_id: programa_ee_fundamentos_de_las_tecnologias_de_informacion
+    title: "Programa de EE: Fundamentos de las Tecnologías de Información"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Fundamentos de las Tecnologías de Información (LISTI 2023)."
+    vigente: true
+
+  - file: "../../documentos_ee_pdf/Programa EE_TópicosSelectosDeProgramación.pdf"
+    doc_id: programa_ee_topicos_selectos_de_programacion
+    title: "Programa de EE: Tópicos Selectos de Programación"
+    version: "LISTI 2023"
+    contexto: "Programa de la EE Tópicos Selectos de Programación (LISTI 2023)."
+    vigente: true

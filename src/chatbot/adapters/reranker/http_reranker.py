@@ -38,16 +38,40 @@ class HttpReranker:
         """[(índice del candidato, puntaje)] a partir de la respuesta JSON."""
         raise NotImplementedError
 
+    def _score(self, query: str, texts: list[str]) -> list[tuple[int, float]]:
+        r = httpx.post(self._url, timeout=self._timeout,
+                       headers={"Authorization": f"Bearer {self._key}",
+                                "Accept": "application/json"},
+                       json=self._body(query, texts))
+        r.raise_for_status()
+        return self._parse(r.json())
+
+    def _score_skipping_rejected(self, query: str, texts: list[str],
+                                 offset: int = 0) -> list[tuple[int, float]]:
+        """Algunas APIs (NVIDIA) rechazan el lote entero si UN pasaje no pasa su filtro de
+        contenido, aunque sea inofensivo. Se parte el lote en mitades hasta aislarlo; el pasaje
+        rechazado queda sin puntaje. Si ambas mitades fallan, el problema es la pregunta."""
+        try:
+            return [(i + offset, s) for i, s in self._score(query, texts)]
+        except httpx.HTTPStatusError as e:
+            if not _rejected_by_filter(e):
+                raise
+            if len(texts) == 1:
+                log.warning("%s rechazó un pasaje por su filtro de contenido: %r",
+                            self.service, texts[0][:70])
+                return []
+            mid = len(texts) // 2
+            left = self._score_skipping_rejected(query, texts[:mid], offset)
+            right = self._score_skipping_rejected(query, texts[mid:], offset + mid)
+            if not left and not right:
+                raise
+            return left + right
+
     def __call__(self, query: str, candidates: list[ScoredChunk]) -> list[ScoredChunk]:
         if not candidates:
             return []
         try:
-            r = httpx.post(self._url, timeout=self._timeout,
-                           headers={"Authorization": f"Bearer {self._key}",
-                                    "Accept": "application/json"},
-                           json=self._body(query, [c.chunk.text for c in candidates]))
-            r.raise_for_status()
-            scored = self._parse(r.json())
+            scored = self._score_skipping_rejected(query, [c.chunk.text for c in candidates])
         except (httpx.HTTPError, KeyError, ValueError, TypeError) as e:
             log.warning("Reranker de %s no disponible (%s); se usa el orden de la fusión.",
                         self.service, e)
@@ -55,5 +79,11 @@ class HttpReranker:
         ranked = sorted(scored, key=lambda s: s[1], reverse=True)
         # Se conserva `relevance` (similitud vectorial) y se guarda el puntaje en `rerank_score`:
         # la suficiencia usa este último si su umbral está calibrado.
-        return [ScoredChunk(candidates[i].chunk, float(s), candidates[i].relevance, float(s))
-                for i, s in ranked]
+        out = [ScoredChunk(candidates[i].chunk, float(s), candidates[i].relevance, float(s))
+               for i, s in ranked]
+        seen = {i for i, _ in scored}  # los rechazados por el filtro: al final, sin puntaje
+        return out + [c for i, c in enumerate(candidates) if i not in seen]
+
+
+def _rejected_by_filter(e: httpx.HTTPStatusError) -> bool:
+    return e.response.status_code == 422 and "safety" in e.response.text.lower()

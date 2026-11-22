@@ -45,7 +45,54 @@ class NvidiaEmbedder:
         return self._embed([text], "query")[0]
 
     def embed_documents(self, texts: Sequence[str]) -> list[list[float]]:
+        self.warnings: list[str] = []
         out: list[list[float]] = []
         for i in range(0, len(texts), self._batch):
-            out.extend(self._embed(list(texts[i:i + self._batch]), "passage"))
+            batch = list(texts[i:i + self._batch])
+            try:
+                out.extend(self._embed(batch, "passage"))
+            except httpx.HTTPStatusError as e:
+                if not _rejected_by_filter(e):
+                    raise
+                out.extend(self._embed_one_by_one(batch))  # solo uno del lote suele ser el culpable
         return out
+
+    def _embed_one_by_one(self, texts: list[str]) -> list[list[float]]:
+        """El filtro de contenido de NVIDIA rechaza a veces fragmentos inofensivos (p. ej. un
+        temario de bases de datos distribuidas). Se intenta con sus dos mitades (promediadas)
+        y, si tampoco pasan, con su primera línea (programa y sección). El texto completo
+        sigue en el índice léxico (BM25)."""
+        out = []
+        for t in texts:
+            for attempt in (lambda: [t], lambda: _halves(t), lambda: [t[:120]]):
+                parts = attempt()
+                try:
+                    vecs = self._embed(parts, "passage")
+                except httpx.HTTPStatusError as e:
+                    if not _rejected_by_filter(e):
+                        raise
+                    continue
+                if len(parts) > 1 or parts[0] != t:
+                    self.warnings.append(f"filtro de NVIDIA: vector aproximado ({len(parts)} parte(s)) "
+                                         f"para el fragmento que empieza {t[:70]!r}")
+                out.append(_mean(vecs))
+                break
+            else:
+                raise RuntimeError(f"El filtro de NVIDIA rechaza el fragmento {t[:70]!r} incluso recortado")
+        return out
+
+
+def _rejected_by_filter(e: httpx.HTTPStatusError) -> bool:
+    return e.response.status_code == 422 and "safety" in e.response.text.lower()
+
+
+def _halves(text: str) -> list[str]:
+    words = text.split()
+    mid = len(words) // 2
+    return [" ".join(words[:mid]), " ".join(words[mid:])]
+
+
+def _mean(vectors: list[list[float]]) -> list[float]:
+    if len(vectors) == 1:
+        return vectors[0]
+    return [sum(xs) / len(vectors) for xs in zip(*vectors)]

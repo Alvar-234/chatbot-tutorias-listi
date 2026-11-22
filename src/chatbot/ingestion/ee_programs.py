@@ -85,7 +85,9 @@ def parse_program(text: str, archivo: str = "") -> EEProgram:
     text = "\n".join(l for l in text.splitlines() if not _PAGE_NUMBER.match(l))
     text = unicodedata.normalize("NFC", text)
 
-    m = re.search(r"Licenciatura en .*?,\s*(\d{4})", text)
+    # El año del plan va en la línea siguiente al título, con redacciones distintas:
+    # "Licenciatura en ... Información, 2023", "... Información 2023", "... Información, año 2023"
+    m = re.search(r"Programa de experiencia educativa\s*\n[^\n]*?(\d{4})", text)
     p.plan = f"LISTI {m.group(1)}" if m else ""
 
     nombre = _between(text, r"6\.\s*Nombre de la Experiencia\s*Educativa", r"7\.\s*[ÁA]rea de Formaci")
@@ -186,6 +188,9 @@ def apply_validations(programs: list[EEProgram], validations: dict) -> list[dict
         if p is None:
             raise ValueError(f"validaciones_ee.yaml: no hay programa llamado {nombre!r}")
         v = v or {}
+        if v.get("nombre"):  # corrige el nombre (y con él la clave), p. ej. una errata del PDF
+            p.nombre = v["nombre"]
+            match = _matcher(programs)
         if "prerrequisitos" in v:
             p.prerrequisitos_texto = "; ".join(v["prerrequisitos"]) or "Ninguno"
             p.revisar = [r for r in p.revisar if not r.startswith("prerrequisito")]
