@@ -29,4 +29,4 @@ class CrossEncoderReranker:
                                      batch_size=8, show_progress_bar=False)
         ranked = sorted(zip(candidates, scores), key=lambda cs: float(cs[1]), reverse=True)
         # `relevance` (similitud vectorial) se conserva: es la base del umbral de suficiencia.
-        return [ScoredChunk(c.chunk, float(s), c.relevance) for c, s in ranked]
+        return [ScoredChunk(c.chunk, float(s), c.relevance, float(s)) for c, s in ranked]

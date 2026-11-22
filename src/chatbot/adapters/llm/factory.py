@@ -9,6 +9,7 @@ from .openai_compat import OpenAICompatProvider
 _PROVIDERS = {
     "groq": ("https://api.groq.com/openai/v1", "GROQ_API_KEY"),
     "huggingface": ("https://router.huggingface.co/v1", "HF_TOKEN"),
+    "nvidia": ("https://integrate.api.nvidia.com/v1", "NVIDIA_API_KEY"),
     "local": ("http://localhost:11434/v1", None),  # Ollama / llama.cpp / vLLM
 }
 

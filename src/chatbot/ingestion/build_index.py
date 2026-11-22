@@ -39,7 +39,7 @@ def build_chunks(settings) -> list[Chunk]:
 
 
 def main() -> None:
-    from ..adapters.embeddings.sentence_transformers_embedder import SentenceTransformerEmbedder
+    from ..adapters.embeddings.factory import build_embedder, collection_name
     from ..adapters.vectorstore.chroma_store import ChromaVectorStore
 
     use_system_certificates()
@@ -56,9 +56,8 @@ def main() -> None:
                                ensure_ascii=False) + "\n")
 
     emb_cfg = settings["embeddings"]
-    embedder = SentenceTransformerEmbedder(emb_cfg["model"], emb_cfg.get("query_prefix", ""),
-                                           emb_cfg.get("passage_prefix", ""))
-    store = ChromaVectorStore(str(settings.path("chroma_dir")))
+    embedder = build_embedder(emb_cfg)
+    store = ChromaVectorStore(str(settings.path("chroma_dir")), collection_name(emb_cfg))
     store.reset()
     store.add(chunks, embedder.embed_documents([c.text for c in chunks]))
 

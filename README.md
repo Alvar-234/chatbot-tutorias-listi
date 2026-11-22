@@ -73,10 +73,10 @@ manifest.yaml → cargar (PDF/MD/TXT) → limpiar encabezados y pies repetidos
 | Lenguaje | Python ≥ 3.11 | probado con 3.11.9 |
 | API | FastAPI + Uvicorn | `POST /chat`, `GET /health` |
 | Interfaz | HTML + JavaScript sin framework | `web/index.html`, servida por la misma API |
-| LLM principal | Groq, modelo `openai/gpt-oss-20b` | API compatible con OpenAI; nivel gratuito |
-| LLM de contingencia | Ollama, modelo `llama3.2` | local; opcional |
-| Embeddings | `BAAI/bge-m3` con sentence-transformers | local, multilingüe |
-| Reranker | `BAAI/bge-reranker-v2-m3` (cross-encoder) o API de Voyage AI (`rerank-2.5`) | local cuantizado a 8 bits en CPU, o externo |
+| LLM principal | NVIDIA, modelo `nvidia/nemotron-3.5-lightning-30b-a3b` (sin razonamiento) | API compatible con OpenAI (build.nvidia.com) |
+| LLM de contingencia | Groq `openai/gpt-oss-20b`, después Ollama `llama3.2` | API gratuita; local opcional |
+| Embeddings | NVIDIA `nvidia/nemotron-3.5-embed-1b` o `BAAI/bge-m3` local | API o local; ambos multilingües |
+| Reranker | NVIDIA `nvidia/nemotron-3.5-rerank-8b`, Voyage AI `rerank-2.5` o `BAAI/bge-reranker-v2-m3` local | API o local (cuantizado a 8 bits en CPU) |
 | Almacén vectorial | ChromaDB (persistente en disco) | distancia coseno |
 | Búsqueda léxica | BM25 en Python puro | sin dependencias |
 | Datos estructurados | SQLite | plan de estudios y seriación |
@@ -113,8 +113,8 @@ chatbot-tutorias-listi/
 │   │   └── ports.py             #   contratos que implementan los adaptadores
 │   ├── adapters/                # implementaciones intercambiables de los puertos
 │   │   ├── llm/                 #   cliente OpenAI-compatible y cadena de proveedores
-│   │   ├── embeddings/          #   sentence-transformers
-│   │   ├── reranker/            #   cross-encoder local o API de Voyage AI
+│   │   ├── embeddings/          #   sentence-transformers local o API de NVIDIA
+│   │   ├── reranker/            #   cross-encoder local o API (NVIDIA, Voyage AI)
 │   │   ├── vectorstore/         #   Chroma
 │   │   ├── lexical/             #   BM25
 │   │   └── structured/          #   SQLite
@@ -175,13 +175,15 @@ pip install -e ".[dev,rag]"
 pytest                            # deben pasar 56 pruebas; no usan red ni modelos
 ```
 
-**3. Configurar la clave de Groq**
+**3. Configurar las claves de API**
 
 ```bash
 copy .env.example .env            # Linux/macOS: cp .env.example .env
 ```
 
-Edita `.env` y escribe tu clave en `GROQ_API_KEY=`. Este archivo no se sube al repositorio.
+Edita `.env` y escribe tus claves: `NVIDIA_API_KEY=` (de <https://build.nvidia.com/>, usada por
+el LLM, los embeddings y el reranker con la configuración por defecto) y `GROQ_API_KEY=` (LLM de
+respaldo). Este archivo no se sube al repositorio.
 
 **4. Crear la base de datos estructurada**
 
@@ -260,13 +262,16 @@ Todo se ajusta en `config/settings.yaml`. Lo más relevante:
 | `llm.chain` | Proveedores en orden de uso. `extra` envía parámetros propios del proveedor. |
 | `llm.max_tokens` | Presupuesto de la respuesta. En modelos de razonamiento incluye el "pensamiento". |
 | `llm.retry_429_max_wait_s` | Espera máxima ante límite de cuota antes de pasar al siguiente proveedor. |
-| `embeddings.model` | Modelo de embeddings. Cambiarlo obliga a reconstruir el índice. |
+| `embeddings.provider` | `nvidia` (API, `nvidia_model`) o `local` (`model`). Cada proveedor tiene su colección en Chroma: al cambiarlo hay que construir su índice una vez (paso 5); después se puede alternar sin reconstruir. |
+| `embeddings.model` / `nvidia_model` | Modelo de embeddings. Cambiarlo obliga a reconstruir el índice. |
 | `chunking.size_tokens` | Tamaño de fragmento. Cambiarlo obliga a reconstruir el índice. |
 | `retrieval.k` | Fragmentos que se envían al LLM. |
-| `retrieval.reranker.provider` | `local` (cross-encoder en este equipo) o `voyage` (API; requiere `VOYAGE_API_KEY` en `.env`). Con `voyage` no se descarga el modelo local y, si la API falla, se usa el orden de la fusión. |
+| `retrieval.reranker.provider` | `nvidia` o `voyage` (API; requieren `NVIDIA_API_KEY` o `VOYAGE_API_KEY`) o `local` (cross-encoder en este equipo). Con una API no se descarga el modelo local y, si la API falla, se usa el orden de la fusión. |
 | `retrieval.reranker.model` | Modelo local de reordenamiento. `""` lo desactiva. |
 | `retrieval.reranker.voyage_model` | Modelo de Voyage: `rerank-2.5` o `rerank-2.5-lite`. Sin método de pago, Voyage limita a 3 solicitudes y 10 000 tokens por minuto: insuficiente (cada pregunta envía ~10 000 tokens). |
-| `sufficiency.relevance_threshold` | Similitud mínima para intentar responder (provisional, sin calibrar). |
+| `retrieval.reranker.nvidia_model` | Modelo de NVIDIA: `nvidia/nemotron-3.5-rerank-8b`. |
+| `sufficiency.rerank_threshold` | Puntaje mínimo del reranker para intentar responder, por modelo (cada uno tiene su escala). Tiene prioridad sobre la similitud vectorial porque tolera erratas y sinónimos. NVIDIA: −2.9 (provisional, con 21 preguntas). |
+| `sufficiency.relevance_threshold` | Similitud vectorial mínima; se usa si no hay reranker, si el suyo no tiene umbral o si su API falla (provisional, sin calibrar). |
 | `privacy.rate_limit` | Solicitudes permitidas por ventana de tiempo. |
 
 `config/sensitive_topics.yaml` contiene las frases que disparan la derivación y los contactos que
@@ -276,7 +281,10 @@ se muestran al estudiante.
 
 Medido con el corpus actual en un equipo sin GPU (6 hilos):
 
-- **Latencia: unos 20 s por respuesta**, casi toda del reranker. Sin reranker
+- **Con los tres modelos de NVIDIA (configuración por defecto): 4–7 s por respuesta** (reranker
+  1.5–2.5 s), 9/9 correctas en la prueba de humo. Construir el índice tarda ~40 s. Contrapartida:
+  la pregunta (ya sin datos personales) y los fragmentos del corpus se envían a NVIDIA.
+- **Todo local: unos 20 s por respuesta**, casi toda del reranker. Sin reranker
   (`retrieval.reranker.model: ""`) baja a 2–3 s, pero empeoran las preguntas donde el estudiante
   y el reglamento usan palabras distintas: "¿cuántas veces puedo cursar una experiencia
   educativa?" debe encontrar el artículo que habla de "dos inscripciones". Con GPU el costo del

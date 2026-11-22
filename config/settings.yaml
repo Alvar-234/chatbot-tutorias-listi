@@ -9,7 +9,11 @@ llm:
   # Cadena de contingencia (sección 3.4): se prueba en orden; si uno falla, pasa al siguiente.
   # `extra` se envía tal cual en el cuerpo de la petición (parámetros propios del proveedor).
   chain:
-    - provider: groq          # groq | huggingface | local
+    - provider: nvidia        # groq | huggingface | nvidia | local
+      model: "nvidia/nemotron-3.5-lightning-30b-a3b"   # ver build.nvidia.com/models
+      extra:
+        chat_template_kwargs: {enable_thinking: false}  # sin razonamiento: más rápido y sin agotar max_tokens
+    - provider: groq
       model: "openai/gpt-oss-20b"    # ver https://console.groq.com/docs/models (nivel gratuito)
       extra:
         reasoning_effort: "low"
@@ -18,6 +22,10 @@ llm:
       base_url: "http://localhost:11434/v1"
 
 embeddings:
+  # provider: local -> `model` en este equipo; nvidia -> `nvidia_model` por API (NVIDIA_API_KEY).
+  # Cada proveedor tiene su propia colección en Chroma: al cambiarlo, reconstruye el índice una vez.
+  provider: nvidia
+  nvidia_model: "nvidia/nemotron-3.5-embed-1b"   # multilingüe, 2048 dimensiones
   model: "BAAI/bge-m3"        # candidatos: BGE-M3, multilingual-e5, EmbeddingGemma (ADR-004)
   query_prefix: ""            # multilingual-e5 requiere "query: " y "passage: "
   passage_prefix: ""
@@ -33,9 +41,11 @@ retrieval:
   # Reordena los candidatos de la fusión con un cross-encoder.
   #   provider: local  -> modelo `model` en este equipo (lento en CPU, ~20 s). model: "" lo desactiva.
   #   provider: voyage -> API de Voyage AI (`voyage_model`), requiere VOYAGE_API_KEY en .env.
-  #                       Envía la pregunta (ya redactada) y los fragmentos a un servicio externo.
+  #   provider: nvidia -> API de NVIDIA (`nvidia_model`), requiere NVIDIA_API_KEY en .env.
+  #   Las dos APIs reciben la pregunta (ya redactada) y los fragmentos candidatos.
   reranker:
-    provider: voyage
+    provider: nvidia
+    nvidia_model: "nvidia/nemotron-3.5-rerank-8b"   # multilingüe
     voyage_model: "rerank-2.5"   # rerank-2.5 | rerank-2.5-lite (multilingües); ver docs.voyageai.com/docs/reranker
     timeout_s: 15
     model: "BAAI/bge-reranker-v2-m3"
@@ -45,6 +55,12 @@ retrieval:
 
 sufficiency:
   relevance_threshold: 0.35   # PROVISIONAL: calibrar con el subconjunto dev (sección 7.2, paso 5)
+  # Umbral sobre el puntaje del reranker, por modelo (cada uno tiene su escala). Si el reranker
+  # en uso no aparece aquí, o su API falla, se usa relevance_threshold (similitud vectorial).
+  # nvidia: 13 preguntas con respuesta (con erratas) dieron -1.12 a -2.79; 8 sin respuesta,
+  # -2.78 a -3.41. PROVISIONAL: muestra pequeña, recalibrar con el subconjunto dev.
+  rerank_threshold:
+    "nvidia:nvidia/nemotron-3.5-rerank-8b": -2.9
   ignore_entities: ["LISTI", "UV"]
 
 pipeline:

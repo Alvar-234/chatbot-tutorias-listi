@@ -2,7 +2,7 @@
 import httpx
 import pytest
 
-from chatbot.adapters.reranker import voyage_reranker
+from chatbot.adapters.reranker import http_reranker, voyage_reranker
 from chatbot.adapters.reranker.voyage_reranker import VoyageReranker
 from chatbot.domain.models import Chunk, ScoredChunk
 
@@ -22,7 +22,7 @@ def fake_post(monkeypatch):
             raise item
         return item
 
-    monkeypatch.setattr(voyage_reranker.httpx, "post", post)
+    monkeypatch.setattr(http_reranker.httpx, "post", post)
     return calls, queue
 
 

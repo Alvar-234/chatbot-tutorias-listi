@@ -70,6 +70,7 @@ class ScoredChunk:
     chunk: Chunk
     score: float            # puntaje de fusión (RRF) o del índice que lo devolvió
     relevance: float = 0.0  # similitud vectorial [0-1]; base de la evaluación de suficiencia
+    rerank_score: Optional[float] = None  # puntaje del reranker, si lo hubo (escala del modelo)
 
 
 @dataclass(frozen=True)
@@ -133,6 +134,7 @@ class Trace:
     completion_tokens: int = 0
     sufficiency_reason: str = ""
     max_relevance: float = 0.0
+    max_rerank_score: Optional[float] = None
     verification_problems: list[str] = field(default_factory=list)
     stage_ms: dict = field(default_factory=dict)
     total_ms: float = 0.0

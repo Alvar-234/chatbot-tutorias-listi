@@ -114,6 +114,7 @@ class ChatPipeline:
         with self._stage(trace, "sufficiency"):
             suff = self.sufficiency.check(query, chunks)
         trace.sufficiency_reason, trace.max_relevance = suff.reason, suff.max_relevance
+        trace.max_rerank_score = suff.max_rerank_score
         if not suff.sufficient:
             return self._abstain_or_handoff(session)
 

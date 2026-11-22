@@ -26,6 +26,9 @@ class ChromaVectorStore:
         self._col = self._client.get_or_create_collection(
             self._name, metadata={"hnsw:space": "cosine"})
 
+    def count(self) -> int:
+        return self._col.count()
+
     def add(self, chunks: Sequence[Chunk], vectors: Sequence[Sequence[float]]) -> None:
         step = 256
         for i in range(0, len(chunks), step):
