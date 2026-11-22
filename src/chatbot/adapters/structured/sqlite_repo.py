@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS asignatura (
 CREATE TABLE IF NOT EXISTS seriacion (
     clave TEXT NOT NULL REFERENCES asignatura(clave),
     requiere_clave TEXT NOT NULL REFERENCES asignatura(clave),
-    tipo TEXT NOT NULL CHECK (tipo IN ('previa', 'simultanea')),
+    tipo TEXT NOT NULL CHECK (tipo IN ('previa', 'simultanea', 'recomendada')),
     PRIMARY KEY (clave, requiere_clave)
 );
 """
@@ -34,7 +34,7 @@ def init_db(conn: sqlite3.Connection) -> None:
 
 def load_csv_dir(conn: sqlite3.Connection, directory: str | Path) -> None:
     d = Path(directory)
-    with (d / "asignaturas.csv").open(encoding="utf-8", newline="") as f:
+    with (d / "asignaturas.csv").open(encoding="utf-8-sig", newline="") as f:
         for r in csv.DictReader(f):
             conn.execute(
                 "INSERT OR REPLACE INTO asignatura VALUES (?,?,?,?,?,?)",
@@ -42,7 +42,7 @@ def load_csv_dir(conn: sqlite3.Connection, directory: str | Path) -> None:
                  int(r["creditos"]) if r["creditos"].strip() else None,
                  r["periodo"].strip() or None, r["area"].strip() or None,
                  r["plan_vigente"].strip() or None))
-    with (d / "seriacion.csv").open(encoding="utf-8", newline="") as f:
+    with (d / "seriacion.csv").open(encoding="utf-8-sig", newline="") as f:
         for r in csv.DictReader(f):
             conn.execute("INSERT OR REPLACE INTO seriacion VALUES (?,?,?)",
                          (r["clave"].strip(), r["requiere_clave"].strip(), r["tipo"].strip()))

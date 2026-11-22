@@ -5,12 +5,18 @@
 
 ## 1. Resumen de créditos
 
-| Concepto | Créditos |
+La carrera tiene un total de 360 créditos, distribuidos por área de formación así:
+
+| Área de formación | Créditos |
 |---|---:|
-| Total de créditos | 392 |
-| Créditos para grado | 362 |
-| Créditos de elección libre | 18 |
-| Créditos optativos | 18 |
+| Área de Formación Básica General (tronco común de la UV) | 20 |
+| Iniciación a la disciplina | 57 |
+| Disciplinar | 213 |
+| Terminal (incluye 18 créditos de las 3 optativas) | 52 |
+| Área de Formación de Elección Libre | 18 |
+| Total de créditos de la carrera | 360 |
+
+Los 18 créditos del Área de Formación de Elección Libre corresponden a actividades a elección del alumno, por eso no aparecen como materias en este mapa. Las materias del Área de Formación Básica General (Lengua I, Lengua II, Literacidad digital, Pensamiento crítico para la solución de problemas y Lectura y escritura de textos académicos) son de tronco común para toda la Universidad Veracruzana.
 
 ## Resumen de materias: cuántas materias (experiencias educativas) hay en total
 
@@ -31,12 +37,12 @@ En total, el mapa curricular de la LISTI tiene 45 materias (experiencias educati
 | Área | Número de materias |
 |---|---:|
 | Básica | 5 |
-| Iniciación a la disciplina | 11 |
-| Disciplinar | 22 |
+| Iniciación a la disciplina | 7 |
+| Disciplinar | 26 |
 | Terminal | 7 |
 | Total | 45 |
 
-Nota: estos totales se calcularon contando las materias listadas en la sección 3 de este documento; no aparecen como cifra en el mapa original.
+Nota: estos totales se calcularon contando las materias listadas en la sección 3 de este documento; no aparecen como cifra en el mapa original. El área de cada materia es la de su programa de experiencia educativa.
 
 ## 2. Áreas disponibles
 
@@ -48,13 +54,15 @@ Nota: estos totales se calcularon contando las materias listadas en la sección 
 
 ## 3. Mapa curricular por periodo
 
+Nota: los créditos de cada periodo son la suma de los créditos de sus materias según sus programas de experiencia educativa (los periodos 7 y 8 incluyen 6 créditos por cada optativa).
+
 ### Periodo 1
 
 **Resumen del periodo**
 
 | Dato | Valor |
 |---|---:|
-| Créditos | 41 |
+| Créditos | 35 |
 | Horas totales | 31 |
 | Horas teóricas | 8 |
 | Horas prácticas | 7 |
@@ -77,7 +85,7 @@ Nota: estos totales se calcularon contando las materias listadas en la sección 
 
 | Dato | Valor |
 |---|---:|
-| Créditos | 44 |
+| Créditos | 42 |
 | Horas totales | 32 |
 | Horas teóricas | 12 |
 | Horas prácticas | 10 |
@@ -100,7 +108,7 @@ Nota: estos totales se calcularon contando las materias listadas en la sección 
 
 | Dato | Valor |
 |---|---:|
-| Créditos | 44 |
+| Créditos | 54 |
 | Horas totales | 35 |
 | Horas teóricas | 18 |
 | Horas prácticas | 17 |
@@ -111,7 +119,7 @@ Nota: estos totales se calcularon contando las materias listadas en la sección 
 | Materia | Código | Tipo | Área |
 |---|---|---|---|
 | Networking | FD 3309 | OB | `disciplinar` |
-| Bases de Datos Relacionales | FD 3309 | OB | `iniciacion_disciplina` |
+| Bases de Datos Relacionales | FD 3309 | OB | `disciplinar` |
 | Probabilidad y Estadística | ID 3309 | OB | `iniciacion_disciplina` |
 | Interacción Humano Computadora | FT 3309 | OB | `disciplinar` |
 | Sistemas Operativos | FD 3208 | OB | `disciplinar` |
@@ -134,7 +142,7 @@ Nota: estos totales se calcularon contando las materias listadas en la sección 
 | Materia | Código | Tipo | Área |
 |---|---|---|---|
 | Administración de Servidores | FD 3208 | OB | `disciplinar` |
-| Bases de Datos Post-Relacionales | FD 3208 | OB | `iniciacion_disciplina` |
+| Bases de Datos Post-Relacionales | FD 3208 | OB | `disciplinar` |
 | Procesos de Desarrollo de Software | FD 3309 | OB | `disciplinar` |
 | Experiencia de Usuario | FD 3208 | OB | `disciplinar` |
 | Fundamentos de Tecnologías Web | FD 3208 | OB | `disciplinar` |
@@ -146,7 +154,7 @@ Nota: estos totales se calcularon contando las materias listadas en la sección 
 
 | Dato | Valor |
 |---|---:|
-| Créditos | 48 |
+| Créditos | 47 |
 | Horas totales | 29 |
 | Horas teóricas | 17 |
 | Horas prácticas | 12 |
@@ -157,7 +165,7 @@ Nota: estos totales se calcularon contando las materias listadas en la sección 
 | Materia | Código | Tipo | Área |
 |---|---|---|---|
 | Principios de Ciberseguridad | FD 3208 | OB | `disciplinar` |
-| Administración de Base de Datos | FD 3208 | OB | `iniciacion_disciplina` |
+| Administración de Base de Datos | FD 3208 | OB | `disciplinar` |
 | Gestión del Proceso de Desarrollo de Software | FD 3208 | OB | `disciplinar` |
 | Interfaces de Usuario Avanzadas | FD 3208 | OB | `disciplinar` |
 | Desarrollo Web | FD 3208 | OB | `disciplinar` |
@@ -169,7 +177,7 @@ Nota: estos totales se calcularon contando las materias listadas en la sección 
 
 | Dato | Valor |
 |---|---:|
-| Créditos | 48 |
+| Créditos | 49 |
 | Horas totales | 32 |
 | Horas teóricas | 17 |
 | Horas prácticas | 15 |
@@ -180,7 +188,7 @@ Nota: estos totales se calcularon contando las materias listadas en la sección 
 | Materia | Código | Tipo | Área |
 |---|---|---|---|
 | Ciberseguridad Aplicada | FD 3309 | OB | `disciplinar` |
-| Ingeniería de Datos | FD 3309 | OB | `iniciacion_disciplina` |
+| Ingeniería de Datos | FD 3309 | OB | `disciplinar` |
 | Tecnologías para la Integración de Soluciones | FD 3308 | OB | `disciplinar` |
 | Seminario de Investigación | FD 2206 | OB | `disciplinar` |
 | Desarrollo Móvil | FD 3208 | OB | `disciplinar` |
@@ -192,7 +200,7 @@ Nota: estos totales se calcularon contando las materias listadas en la sección 
 
 | Dato | Valor |
 |---|---:|
-| Créditos | 35 |
+| Créditos | 46 |
 | Horas totales | 22 |
 | Horas teóricas | 8 |
 | Horas prácticas | 14 |

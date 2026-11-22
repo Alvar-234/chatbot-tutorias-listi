@@ -16,6 +16,8 @@ from .text import normalize
 STRUCTURED_HINTS = (
     "requisito", "seriacion", "seriada", "previa", "prerrequisito",
     "creditos", "credito", "periodo", "area", "antecedente",
+    # "¿qué necesito para cursar X?", "¿qué requiere X?", "¿en qué semestre va X?"
+    "necesito", "necesita", "requiere", "recomend", "semestre", "horas",
 )
 
 

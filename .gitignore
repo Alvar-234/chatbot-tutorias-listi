@@ -21,3 +21,6 @@ eval/results/*
 *.egg-info/
 # Corpus: los PDF institucionales no se versionan (autorización pendiente); los .md extraídos sí
 Documentos/**/*.pdf
+documentos_ee_pdf/
+# Generado por scripts/extract_ee.py (se regenera desde los PDF + validaciones_ee.yaml)
+data/structured/extraido/

@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Sequence
 
 from .models import ScoredChunk, SubjectFact
+from .text import normalize
 
 ABSTAIN_MSG = (
     "No cuento con información suficiente en los documentos disponibles para responder "
@@ -35,7 +36,7 @@ CITATION_REMINDER = ("Responde solo con estas fuentes, cita cada afirmación con
                      "las cifras tal como están escritas.")
 
 STRUCTURED_SYSTEM_PROMPT = """Eres un asistente informativo de la LISTI (Universidad Veracruzana).
-Redacta la respuesta usando EXCLUSIVAMENTE los datos entre <datos>. No cambies claves, nombres ni cifras, y no agregues información que no esté ahí. Responde en español, breve y claro."""
+Redacta la respuesta usando EXCLUSIVAMENTE los datos entre <datos>. No cambies claves, nombres ni cifras, y no agregues información que no esté ahí. Responde en español con oraciones completas que nombren la asignatura (no solo el número), breve y claro."""
 
 
 def _escape(text: str) -> str:
@@ -70,12 +71,42 @@ def facts_text(facts: Sequence[SubjectFact]) -> str:
             f"periodo: {f.periodo or 'no registrado'}; área: {f.area or 'no registrada'}; "
             f"plan: {f.plan_vigente or 'no registrado'}."
         )
-        if f.requisitos:
-            reqs = "; ".join(f"{r.nombre} (clave {r.clave}, {r.tipo})" for r in f.requisitos)
+        obligatorios = [r for r in f.requisitos if r.tipo != "recomendada"]
+        recomendadas = [r for r in f.requisitos if r.tipo == "recomendada"]
+        if obligatorios:
+            reqs = "; ".join(f"{r.nombre} (clave {r.clave}, {r.tipo})" for r in obligatorios)
             lines.append(f"Requisitos de seriación de {f.clave}: {reqs}.")
         else:
             lines.append(f"{f.clave} no tiene requisitos de seriación registrados.")
+        if recomendadas:
+            recs = "; ".join(f"{r.nombre} (clave {r.clave})" for r in recomendadas)
+            lines.append(f"Recomendación (NO es requisito obligatorio) para {f.clave}: "
+                         f"cursar antes {recs}.")
     return "\n".join(lines)
+
+
+def missing_requirements(text: str, facts: Sequence[SubjectFact]):
+    """Requisitos y recomendaciones que la redacción del LLM no menciona (ni por nombre ni
+    por clave). El verificador solo detecta datos inventados; esto detecta omisiones."""
+    n = normalize(text)
+
+    def said(r) -> bool:
+        return normalize(r.clave) in n or normalize(r.nombre) in n
+
+    obligatorios = [(f, r) for f in facts for r in f.requisitos
+                    if r.tipo != "recomendada" and not said(r)]
+    recomendadas = [(f, r) for f in facts for r in f.requisitos
+                    if r.tipo == "recomendada" and not said(r)]
+    return obligatorios, recomendadas
+
+
+_REQ_TALK = ("requisit", "seriaci", "previa", "necesit", "requiere", "simultane")
+
+
+def mentions_requirements(text: str) -> bool:
+    """¿La redacción habla de requisitos? (incluye negarlos: "no tiene requisitos")."""
+    n = normalize(text)
+    return any(w in n for w in _REQ_TALK)
 
 
 def build_messages(question: str, chunks: Sequence[ScoredChunk],

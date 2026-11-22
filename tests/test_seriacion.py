@@ -38,3 +38,47 @@ def test_respuesta_vacia_del_llm_usa_el_fallback(build):
     assert ans.decision.value == "answered"
     assert "DEMO-201" in ans.text and "DEMO-102" in ans.text
     assert "respuesta_vacia" in ans.trace.verification_problems
+
+
+def test_llm_que_omite_un_requisito_usa_el_fallback(build):
+    # Bug 4: "DEMO-202 requiere DEMO-201" omite DEMO-102 y antes se entregaba tal cual.
+    ans = build(FakeLLM("Ingeniería de Software (EJEMPLO) requiere DEMO-201.")).answer(PREGUNTA)
+    assert "DEMO-102" in ans.text and "requisito_omitido:DEMO-102" in ans.trace.verification_problems
+
+
+def test_recomendacion_omitida_se_agrega_al_final(handoff):
+    import sqlite3
+    from conftest import FakeRetriever
+    from chatbot.adapters.structured.sqlite_repo import SqliteStructuredRepo, init_db
+    from chatbot.domain.pipeline import ChatPipeline, PipelineSettings
+    from chatbot.domain.router import Router
+    from chatbot.domain.sufficiency import SufficiencyChecker
+    from chatbot.domain.verifier import AnswerVerifier
+    from chatbot.privacy.redactor import Redactor
+    conn = sqlite3.connect(":memory:")
+    init_db(conn)
+    conn.executemany("INSERT INTO asignatura VALUES (?,?,?,?,?,?)", [
+        ("networking", "Networking", 9, "3", "disciplinar", "LISTI 2023"),
+        ("administracion-de-servidores", "Administración de Servidores", 8, "4", "disciplinar", "LISTI 2023")])
+    conn.execute("INSERT INTO seriacion VALUES ('administracion-de-servidores', 'networking', 'recomendada')")
+    repo = SqliteStructuredRepo(conn=conn)
+    pipe = ChatPipeline(router=Router(handoff, repo), retriever=FakeRetriever([]), repo=repo,
+                        llms=[FakeLLM("Administración de Servidores no tiene requisitos de seriación.")],
+                        redactor=Redactor(), sufficiency=SufficiencyChecker(0.35),
+                        verifier=AnswerVerifier(), handoff=handoff, settings=PipelineSettings())
+    ans = pipe.answer("¿Qué necesito para cursar Administración de Servidores?")
+    assert ans.route.value == "structured"
+    assert ans.text.endswith("Recomendación (no es requisito obligatorio): cursar Networking "
+                             "antes de Administración de Servidores.")
+
+
+def test_pregunta_solo_de_creditos_agrega_el_requisito(build):
+    ans = build(FakeLLM("Bases de Datos (EJEMPLO) tiene 6 créditos.")).answer(
+        "¿Cuántos créditos tiene DEMO-201?")
+    assert ans.text.startswith("Bases de Datos (EJEMPLO) tiene 6 créditos.")
+    assert ans.text.endswith("Requisito de seriación: haber cursado Estructuras de Datos (EJEMPLO) (previa).")
+
+
+def test_negar_requisitos_que_existen_usa_el_fallback(build):
+    ans = build(FakeLLM("DEMO-202 no tiene requisitos.")).answer(PREGUNTA)
+    assert "DEMO-201" in ans.text and "DEMO-102" in ans.text

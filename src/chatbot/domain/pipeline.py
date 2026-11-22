@@ -102,6 +102,21 @@ class ChatPipeline:
                 ver = self.verifier.verify(resp.text, [source], require_citations=False)
             trace.verification_problems = ver.problems
             text = resp.text if ver.ok else fallback  # la seriación nunca depende del LLM
+            if ver.ok:
+                omitidos, recomendadas = prompts.missing_requirements(resp.text, facts)
+                if omitidos and prompts.mentions_requirements(resp.text):
+                    # Habló de requisitos y dejó uno fuera (o dijo que no hay): tan grave como
+                    # inventarlo. Se entrega la respuesta determinista.
+                    trace.verification_problems = [f"requisito_omitido:{r.clave}" for _, r in omitidos]
+                    text = fallback
+                else:
+                    # No habló de requisitos (p. ej. preguntaron solo los créditos): se añaden.
+                    text += "".join(
+                        f"\n\nRequisito de seriación: haber cursado {r.nombre} ({r.tipo})."
+                        for _, r in omitidos)
+                    text += "".join(
+                        f"\n\nRecomendación (no es requisito obligatorio): cursar {r.nombre} "
+                        f"antes de {f.nombre}." for f, r in recomendadas)
         except ProviderError:
             text = fallback
         return Answer(text, Decision.ANSWERED, Route.STRUCTURED, citation)

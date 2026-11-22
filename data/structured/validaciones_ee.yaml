@@ -1,0 +1,93 @@
+# Correcciones y confirmaciones de la revisión manual de los programas de EE.
+# scripts/extract_ee.py las aplica sobre lo extraído de los PDF, así sobreviven a una nueva
+# extracción. Las claves son el nombre de la EE tal como aparece en su programa.
+#
+#   prerrequisitos: []          -> confirmado: no tiene prerrequisitos (aunque el PDF venga vacío)
+#   recomendadas: [EE, ...]     -> se recomienda cursarlas antes; NO es requisito obligatorio
+#   confirmado: [marca, ...]    -> marcas de `revisar` revisadas y correctas tal como están
+#   nota: "..."                 -> aclaración que acompaña a la EE
+#   area: disciplinar           -> área confirmada (prevalece sobre el PDF y el mapa curricular)
+#
+# Regla general (revisión del 2026-11-22): para todas las EE la recomendación es cursarlas en
+# el periodo que marca el mapa curricular (se aplica al cruzar con el mapa, paso 2).
+
+Administración de Servidores:
+  prerrequisitos: []
+  recomendadas: [Networking]
+
+Ciberseguridad Aplicada:
+  prerrequisitos: []
+  recomendadas: [Principios de Ciberseguridad]
+
+Procesos de Desarrollo de Software:
+  prerrequisitos: []
+
+Tecnologías para la Integración de Soluciones:
+  prerrequisitos: []
+
+Prácticas Profesionales:
+  confirmado: [horas_totales_no_cuadran]
+  nota: "Los valores del programa son correctos: 120 horas de prácticas."
+
+Servicio Social:
+  confirmado: [creditos_no_cuadran_con_horas]
+  nota: "480 horas comprobables por medio de reportes mensuales."
+
+Liderazgo y Emprendimiento:
+  confirmado: [horas_totales_no_cuadran]
+  nota: "75 horas totales, como indica el programa."
+
+Experiencia Recepcional:
+  confirmado: [creditos_no_cuadran_con_horas]
+
+# El mapa curricular la marca como iniciacion_disciplina; vale el programa (revisión 2026-11-22).
+Bases de Datos Relacionales:
+  area: disciplinar
+
+# Totales oficiales por área (coordinación, 2026-11-22): básica 20, iniciación a la disciplina 57,
+# disciplinar 213, terminal 52, elección libre 18 (total 360). Con las áreas de los programas,
+# iniciación suma exactamente 57; con las del mapa sumaría 91. Vale el programa.
+Administración de Bases de Datos:
+  area: disciplinar
+Bases de Datos Post-Relacionales:
+  area: disciplinar
+Ingeniería de datos:
+  area: disciplinar
+
+# Terminal: 52 oficiales - 46 de las demás EE terminales (con 3 optativas de 6) = 6.
+Acreditación del Idioma Inglés:
+  creditos: 6
+  confirmado: [sin_programa_pdf]
+  nota: "Se acredita cursando Inglés III y IV o presentando una certificación; ver los lineamientos de acreditación de la lengua."
+
+# Tronco común de la UV (Área de Formación Básica General): sin programa en la carpeta.
+# 4 créditos cada una (5 x 4 = 20 oficiales), confirmado 2026-11-22.
+Lengua I:
+  creditos: 4
+  confirmado: [sin_programa_pdf]
+  nota: "EE de tronco común de la UV (Área de Formación Básica General)."
+Lengua II:
+  creditos: 4
+  confirmado: [sin_programa_pdf]
+  nota: "EE de tronco común de la UV (Área de Formación Básica General)."
+Pensamiento Crítico para la solución de problemas:
+  creditos: 4
+  confirmado: [sin_programa_pdf]
+  nota: "EE de tronco común de la UV (Área de Formación Básica General)."
+Literacidad digital:
+  creditos: 4
+  confirmado: [sin_programa_pdf]
+  nota: "EE de tronco común de la UV (Área de Formación Básica General)."
+Lectura y escritura de textos académicos:
+  creditos: 4
+  confirmado: [sin_programa_pdf]
+  nota: "EE de tronco común de la UV (Área de Formación Básica General)."
+
+# Disciplinar: los programas sumaban 211 de los 213 oficiales. Confirmado por la coordinación
+# (2026-11-22): estas dos EE tienen 9 créditos aunque su programa y el mapa indican 8.
+Principios de Ciberseguridad:
+  creditos: 9
+  nota: "9 créditos (confirmado por la coordinación; el programa indica 8)."
+Sistemas Operativos:
+  creditos: 9
+  nota: "9 créditos (confirmado por la coordinación; el programa indica 8)."

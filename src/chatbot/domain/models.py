@@ -77,7 +77,7 @@ class ScoredChunk:
 class Prerequisite:
     clave: str
     nombre: str
-    tipo: str  # "previa" | "simultanea"
+    tipo: str  # "previa" | "simultanea" (obligatorias) | "recomendada" (sugerencia, no requisito)
 
 
 @dataclass(frozen=True)
