@@ -16,6 +16,8 @@ La carrera tiene un total de 360 créditos, distribuidos por área de formación
 | Área de Formación de Elección Libre | 18 |
 | Total de créditos de la carrera | 360 |
 
+Créditos por área, uno por uno: el Área de Formación Básica General (área general) tiene 20 créditos; el área de Iniciación a la disciplina tiene 57 créditos; el área Disciplinar tiene 213 créditos; el área Terminal tiene 52 créditos; el Área de Formación de Elección Libre tiene 18 créditos. En total son 360 créditos.
+
 Los 18 créditos del Área de Formación de Elección Libre corresponden a actividades a elección del alumno, por eso no aparecen como materias en este mapa. Las materias del Área de Formación Básica General (Lengua I, Lengua II, Literacidad digital, Pensamiento crítico para la solución de problemas y Lectura y escritura de textos académicos) son de tronco común para toda la Universidad Veracruzana.
 
 ## Resumen de materias: cuántas materias (experiencias educativas) hay en total

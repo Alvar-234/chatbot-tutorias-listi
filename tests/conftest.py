@@ -36,9 +36,10 @@ class FakeLLM:
 
 class FakeRetriever:
     def __init__(self, chunks):
-        self.chunks = chunks
+        self.chunks, self.queries = chunks, []
 
     def retrieve(self, query):
+        self.queries.append(query)
         return self.chunks
 
 

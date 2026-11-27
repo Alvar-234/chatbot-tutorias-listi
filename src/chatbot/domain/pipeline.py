@@ -11,9 +11,10 @@ from dataclasses import dataclass
 from typing import Optional, Sequence
 
 from . import prompts
+from .followup import is_follow_up
 from .handoff import HandoffRules
-from .models import (Answer, Citation, Decision, LLMResponse, Route, ScoredChunk,
-                     Session, SubjectFact, Trace)
+from .models import (Answer, Citation, Decision, LLMResponse, Route, RouteDecision,
+                     ScoredChunk, Session, SubjectFact, Trace)
 from .ports import LLMProvider, ProviderError, Retriever, StructuredRepo
 from .router import Router
 from .sufficiency import SufficiencyChecker
@@ -94,6 +95,21 @@ class ChatPipeline:
 
         with self._stage(trace, "route"):
             decision = self.router.route(query)
+            search = query
+            if (decision.route == Route.DOCUMENTAL and session.last_search_query
+                    and is_follow_up(query)):
+                # "¿y general?" tras "¿cuántos créditos son del área terminal?": se busca y se
+                # enruta con la consulta anterior antepuesta. Si la actual nombra materias,
+                # mandan esas ("¿y Networking?" ya no pregunta por la materia anterior).
+                search = f"{session.last_search_query} {query}"
+                ctx = self.router.route(search)
+                if ctx.route in (Route.STRUCTURED, Route.DOCUMENTAL):
+                    decision = RouteDecision(ctx.route, ctx.reason + "+seguimiento",
+                                             subjects=decision.subjects or ctx.subjects)
+                    trace.follow_up = True
+                else:
+                    search = query
+        session.last_search_query = search
 
         if decision.route == Route.HANDOFF:
             return Answer(self.handoff.message(decision.handoff_kind), Decision.HANDOFF,
@@ -101,8 +117,8 @@ class ChatPipeline:
         if decision.route == Route.OUT_OF_SCOPE:
             return Answer(prompts.OUT_OF_SCOPE_MSG, Decision.OUT_OF_SCOPE, Route.OUT_OF_SCOPE)
         if decision.route == Route.STRUCTURED:
-            return self._structured(query, decision.subjects, trace)
-        return self._documental(query, session, trace, decision.subjects)
+            return self._structured(search, decision.subjects, trace)
+        return self._documental(query, session, trace, decision.subjects, search)
 
     def _structured(self, query: str, subjects: Sequence[str], trace: Trace) -> Answer:
         with self._stage(trace, "evidence"):
@@ -145,13 +161,16 @@ class ChatPipeline:
         return Answer(text, Decision.ANSWERED, Route.STRUCTURED, citation)
 
     def _documental(self, query: str, session: Session, trace: Trace,
-                    subjects: Sequence[str] = ()) -> Answer:
+                    subjects: Sequence[str] = (), search: Optional[str] = None) -> Answer:
+        # search: consulta para buscar (con contexto si es de seguimiento). El LLM recibe la
+        # pregunta original y el historial.
+        search = search or query
         with self._stage(trace, "evidence"):
-            chunks = focus_on_subjects(self.retriever.retrieve(query), subjects)
+            chunks = focus_on_subjects(self.retriever.retrieve(search), subjects)
         trace.retrieved_ids = [c.chunk.id for c in chunks]
 
         with self._stage(trace, "sufficiency"):
-            suff = self.sufficiency.check(query, chunks)
+            suff = self.sufficiency.check(search, chunks)
         trace.sufficiency_reason, trace.max_relevance = suff.reason, suff.max_relevance
         trace.max_rerank_score = suff.max_rerank_score
         if not suff.sufficient:

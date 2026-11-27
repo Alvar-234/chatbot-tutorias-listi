@@ -139,6 +139,7 @@ class Trace:
     provider: str = ""
     prompt_tokens: int = 0
     completion_tokens: int = 0
+    follow_up: bool = False  # se buscó con la consulta anterior antepuesta (sin guardar textos)
     sufficiency_reason: str = ""
     max_relevance: float = 0.0
     max_rerank_score: Optional[float] = None
@@ -162,3 +163,4 @@ class Session:
     session_id: str
     history: deque = field(default_factory=lambda: deque(maxlen=8))  # (usuario, asistente)
     insufficient_count: int = 0
+    last_search_query: str = ""  # consulta (ya contextualizada) del turno anterior, sin PII

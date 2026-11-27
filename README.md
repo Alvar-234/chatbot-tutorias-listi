@@ -46,6 +46,8 @@ pregunta
   1. Sanitizar ──── recorta y redacta datos personales          privacy/redactor.py
   2. Enrutar ────── derivación › fuera de alcance ›             domain/router.py
   │                 estructurada (materia + "requisito", "créditos", "semestre"...) › documental
+  │                 (seguimientos como "¿y general?" se buscan y enrutan con la    domain/followup.py
+  │                  consulta anterior antepuesta; el LLM recibe la pregunta tal cual)
   3. Evidencia
   │    ├─ estructurada: consulta exacta a SQLite                adapters/structured/
   │    └─ documental:   BM25 + vectorial ─ fusión RRF ─         retrieval/hybrid.py
@@ -101,7 +103,7 @@ manifest.yaml → cargar (PDF/MD/TXT) → limpiar encabezados y pies repetidos
 | Datos estructurados | SQLite | plan de estudios, seriación y recomendaciones |
 | Lectura de PDF | pypdf | solo PDF con texto; los escaneados requieren OCR previo |
 | Cliente HTTP | httpx | LLM, embeddings y rerankers por API |
-| Pruebas | pytest | 100 pruebas, sin red ni modelos |
+| Pruebas | pytest | 104 pruebas, sin red ni modelos |
 
 No se usa LangChain ni otro framework de orquestación: la lógica es código propio.
 
@@ -200,7 +202,7 @@ pip install -e ".[dev,rag]"
 **2. Comprobar la instalación**
 
 ```bash
-pytest                            # deben pasar 100 pruebas; no usan red ni modelos
+pytest                            # deben pasar 104 pruebas; no usan red ni modelos
 ```
 
 **3. Configurar las claves de API**
@@ -471,6 +473,7 @@ pregunta, resume por categoría y guarda respuestas y trazas en `eval/results/`.
 |---|---|---|
 | Primera | 46/54 (85 %) | 4 fallos eran expectativas mal planteadas; 4 eran fallos reales |
 | Tras las correcciones | 54/54, 53/54, 54/54 | el 53/54 fue "No hay becas de transporte" (corregido después) |
+| Con preguntas de seguimiento | 54/54 | sin regresiones; los seguimientos se probaron a mano (el conjunto es de una sola pregunta por caso) |
 
 Recuperación del documento correcto: 100 %; ruta correcta: 100 %. **Ojo:** el sistema se ajustó
 viendo este conjunto (dev). Para la tesis hace falta un conjunto *holdout* con preguntas
@@ -489,6 +492,7 @@ nada después.
 | 2026-11-22 | `8305035` (rama `pruebas-nvidia`) | LLM, embeddings y reranker de NVIDIA. Umbral de suficiencia sobre el puntaje del reranker (tolera erratas). Prompt con ejemplo de cita | 9/9 correctas, 4–7 s; **se adopta como configuración por defecto** |
 | 2026-11-22 | `0f27ad3` | Datos reales del plan: extracción de los 44 programas, cruce con el mapa, validaciones con la coordinación, recomendaciones de seriación. Mapa corregido: total 360 créditos (no 392), áreas y créditos por periodo | Créditos cuadran con los totales oficiales por área |
 | 2026-11-22 | `70122f0` | Base real cargada; 44 programas indexados con contexto y filtro por materia; reintento de verificación; abstenciones del propio LLM; manejo del filtro de contenido de NVIDIA; conjunto de evaluación de 54 preguntas | 54/54 en desarrollo |
+| 2026-11-23 | — | Preguntas de seguimiento: "¿y general?" se abstenía porque se buscaba sin contexto. Ahora se busca con la consulta anterior antepuesta. Al mapa se le añadió una oración con los créditos de cada área, porque el LLM confundía las filas de la tabla (respondía 18 en vez de 20 para el área general) | 54/54; seguimientos correctos ("¿y general?" → 20, "¿y disciplinar?" → 213, "¿y cuántas horas?" tras Networking → 90) |
 
 Las ramas `pruebas-voyage` y `pruebas-nvidia` conservan el estado de cada prueba; `main` incluye
 todo.
@@ -497,6 +501,8 @@ todo.
 
 - [ ] **Conjunto holdout** de evaluación, redactado por tutores o estudiantes y ejecutado solo al
       final.
+- [ ] **Casos de conversación en la evaluación** (varias preguntas seguidas), para medir los
+      seguimientos; hoy cada caso es una sola pregunta.
 - [ ] **Recalibrar `sufficiency.rerank_threshold`** (−2.9) con más preguntas: se fijó con 21,
       antes de añadir los 315 fragmentos de los programas.
 - [ ] **Corpus:** faltan documentos; el Reglamento de Movilidad 2015 está escaneado y requiere OCR.
